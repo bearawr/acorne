@@ -1,25 +1,36 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import Navigation from './components/common/Navigation'
+import './App.css'
+import './styles/index.css'
+import Sleep from './components/Sleep'
+import Fitness from './components/Fitness'
+import Hobbies from './components/Hobbies'
+import School from './components/School'
+import Chores from './components/Chores'
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [currentView, setCurrentView] = useState('sleep');
+
+    const renderView = () => {
+        switch(currentView) {
+            case 'sleep': return <Sleep />;
+            case 'weight': return <Weight />;
+            case 'fitness': return <Fitness />;
+            case 'chores': return <Chores />;
+            case 'school': return <School />;
+            case 'hobbies': return <Hobbies />;
+            default: return <Sleep />;
+        }
+    };
+
+    return (
+        <div className="app">
+            <Navigation currentView={currentView} onViewChange={setCurrentView} />
+            <main className="main-content">
+                {renderView()}
+            </main>
+        </div>
+    );
 }
 
 export default App;
