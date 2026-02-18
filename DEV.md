@@ -7,6 +7,16 @@ Track ideas and explanations to decisions.
 - function App()
 - export default App;
 
+## App.css
+- `.app`
+    - flex display
+
+- `.main-content`
+    - takes all space
+    - has scrollbar
+
+- has phone/mobile view
+
 ## src/utils/storage.js
 
 - `const` means constant reference
