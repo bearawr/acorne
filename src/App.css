@@ -1,21 +1,23 @@
 .app {
     display: flex;
-    min-height: 100vh; /* 100% of the viewport hieght */
+    min-height: 100vh; /* 100% of the viewport height */
     background: var(--color-bg);
 }
 
 .main-content {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1;  /* Tells this section to grow and take up all remaining available space */
+    overflow-y: auto; /* Adds a scrollbar only if the content inside is taller than the screen */
     background: var(--color-bg);
 }
 
+/* @media: A 'Breakpoint' that triggers only when the screen width is 768px or smaller (Tablets/Phones) */
 @media (max-width: 768px) {
     .app {
         flex-direction: column;
     }
 
     .main-content {
+        /* Sets height to 100% of the screen minus 70px (to leave room for a fixed Navigation bar) */
         min-height: calc(100vh - 70px);
     }
 }

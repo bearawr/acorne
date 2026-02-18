@@ -11,10 +11,12 @@ const STORAGE_KEYS = {
     SCHOOL: 'acorne_school data'
 };
 
+// storage = 'how to talk to browser'
 export const storage = {
     get: (key) => {
         try {
             const data = localStorage.getItem(key);
+            // condition ? value_if_true : value_if_false
             return data ? JSON.parse(data) : null;
         } catch (error) {
             console.error('Error reading from storage:', error);
