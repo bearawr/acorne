@@ -21,7 +21,7 @@ Track:
     - Spacing
     - Typography
     - Transitions
-    - * universal selector
+    - '*'  universal selector
     - body
     - h1 > h6
     - button
@@ -31,3 +31,5 @@ Track:
         - fadeIn
         - slideInRight
         - pulse
+- components folder and views
+- App.css and App.js
