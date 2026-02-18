@@ -8,7 +8,7 @@ const STORAGE_KEYS = {
     FITNESS: 'acorne_fitness_data',
     CHORES: 'acorne_chores_data',
     HOBBIES: 'acorne_hobbies_data',
-    SCHOOL: 'acorne_school data'
+    SCHOOL: 'acorne_school_data'
 };
 
 // storage = 'how to talk to browser'
