@@ -11,7 +11,7 @@ Track:
 
 ## 18-02-2026
 ### Added:
-- :root pseudo class in index.css. Contains the following:
+- `:root` pseudo class in `index.css`. Contains the following:
     - Primary, secondary, accent colors
     - Backhround, surface colors
     - Text colors (primary, secondar, tertiary, inverse)
@@ -21,7 +21,7 @@ Track:
     - Spacing
     - Typography
     - Transitions
-    - '*'  universal selector
+    - `*`  universal selector
     - body
     - h1 > h6
     - button
