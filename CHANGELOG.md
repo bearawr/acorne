@@ -33,3 +33,6 @@ Track:
         - pulse
 - components folder and views
 - App.css and App.js
+
+### Removed
+- App.test
