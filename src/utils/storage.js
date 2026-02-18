@@ -34,6 +34,7 @@ export const storage = {
     },
 
     //Placeholder functions for the other modules
+    getSleepData: () => storage.get(STORAGE_KEYS.SLEEP) || [],
     getWeightData: () => storage.get(STORAGE_KEYS.WEIGHT) || [],
     getFitnessData: () => storage.get(STORAGE_KEYS.FITNESS) || [],
     getSchoolData: () => storage.get(STORAGE_KEYS.SCHOOL) || [],
