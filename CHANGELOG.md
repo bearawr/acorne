@@ -32,7 +32,12 @@ Track:
         - slideInRight
         - pulse
 - components folder and views
-- App.css and App.js
+- App.css
+    - app
+    - main-content
+- App.js
+- utils folder
+    - storage.js
 
 ### Removed
 - App.test

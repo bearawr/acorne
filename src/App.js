@@ -1,4 +1,10 @@
 import React, { useState } from "react";
+    /*
+        Imports 'default export'.
+        useState is a function that allows us to add a state to the
+        functional component. 'state' enables dynamic webs for data that changes,
+        else, it would be a static page
+    */
 import Navigation from './components/common/Navigation'
 import './App.css'
 import './styles/index.css'
@@ -11,6 +17,7 @@ import Chores from './components/Chores'
 function App() {
     const [currentView, setCurrentView] = useState('sleep');
 
+    // Decides which components to return
     const renderView = () => {
         switch(currentView) {
             case 'sleep': return <Sleep />;
@@ -33,4 +40,4 @@ function App() {
     );
 }
 
-export default App;
+export default App; // makes available to index.js
