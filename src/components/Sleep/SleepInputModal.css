@@ -1,0 +1,203 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(45, 42, 38, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--spacing-lg);
+    animation: fadeIn var(--transition-fast);
+}
+
+.modal-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideInRight var(--transition-base);
+}
+
+.modal-header {
+    padding: var(--spacing-xl);
+    border-bottom: 1px solid var(--color-bg-tertiary);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.modal-header h2 {
+    font-size: 24px;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-xs);
+}
+
+.modal-date {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+}
+
+.sleep-form {
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.form-group input,
+.form-group textarea {
+    padding: var(--spacing-md);
+    border: 2px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    transition: all var(--transition-fast);
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.form-group input:focus,
+    .form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+}
+
+.form-group input[type="time"] {
+    font-family: var(--font-body);
+    cursor: pointer;
+}
+
+.form-group textarea {
+    resize: vertical;
+    font-family: var(--font-body);
+}
+
+.calculated-hours {
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    text-align: center;
+    color: white;
+}
+
+.calculated-hours p {
+    font-size: 16px;
+    margin: 0;
+}
+
+.calculated-hours strong {
+    font-size: 24px;
+    font-family: var(--font-display);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-bg-tertiary);
+}
+
+.action-group {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.btn-secondary {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 15px;
+    transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.btn-danger {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-error);
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 15px;
+    transition: all var(--transition-fast);
+}
+
+.btn-danger:hover {
+    background: #c96565;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+.modal-content {
+    max-width: 100%;
+    margin: 0;
+    border-radius: var(--radius-lg);
+}
+
+.form-row {
+    grid-template-columns: 1fr;
+}
+
+.modal-actions {
+    flex-direction: column-reverse;
+}
+
+.action-group {
+    width: 100%;
+}
+
+.action-group button,
+.btn-danger {
+    flex: 1;
+}
+}
