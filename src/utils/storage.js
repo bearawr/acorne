@@ -33,29 +33,6 @@ export const storage = {
         }
     },
 
-    // Sleep data functions
-    getSleepData: () => {
-        return storage.get(STORAGE_KEYS.SLEEP) || [];
-    },
-    saveSleepData: (data) => {
-        return storage.set(STORAGE_KEYS.SLEEP, data);
-    },
-    addSleepEntry: (entry) => {
-        const data = storage.getSleepData();
-        const newData = [...data, entry];
-        return storage.saveSleepData(newData);
-    },
-    updateSleepEntry: (date, updatedEntry) => {
-        const data = storage.getSleepData();
-        const newData = data.map(entry => entry.date === date ? { ...entry, ...updatedEntry } : entry);
-        return storage.saveSleepData(newData);
-    },
-    deleteSleepEntry: (date) => {
-        const data = storage.getSleepData();
-        const newData = data.filter(entry => entry.date !== date);
-        return storage.saveSleepData(newData);
-    },
-
     //Placeholder functions for the other modules
     getWeightData: () => storage.get(STORAGE_KEYS.WEIGHT) || [],
     getFitnessData: () => storage.get(STORAGE_KEYS.FITNESS) || [],
