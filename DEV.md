@@ -40,3 +40,7 @@ Track ideas and explanations to decisions.
     - deleteSleepEntry
 
 - placeholder functions for other modules
+
+## TO DO:
+- change the color for sleep so it has its own color, separate from the primary brown colors.
+- put the distributed sleep number indicator on top of the bar to the right, not within
