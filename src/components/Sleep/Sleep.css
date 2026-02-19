@@ -2,11 +2,16 @@
     padding: var(--spacing-lg);
     max-width: 1400px;
     margin: 0 auto;
+        /*
+        horizontally center a block
+        0 is margin top and bottom, auto is calc left and right to center
+        */
     min-height: 100vh;
 }
 
 .view-header {
     display: flex;
+    gap: 8px;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-lg);
@@ -14,6 +19,7 @@
 
 .view-header h1 {
     font-size: 30px;
+    margin-top:  auto;
     margin: 0;
     color: var(--color-primary);
     font-weight: 600;
@@ -22,7 +28,7 @@
 
 .header-actions {
     display: flex;
-    gap: var(--spacing-md);
+    /* gap: var(--spacing-md); */
     align-items: center;
 }
 
@@ -64,7 +70,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
-    max-width: 700px;
+    max-width: 600px;
 }
 
 .stat-card {
@@ -75,12 +81,6 @@
     text-align: center;
     border: 1px solid var(--color-bg-tertiary);
     transition: all var(--transition-fast);
-}
-
-.stat-card:hover {
-    box-shadow: 0 4px 12px rgba(139,127,184,0.15);
-    transform: translateY(-2px);
-    border-color: var(--color-primary-light);
 }
 
 .stat-label {
@@ -162,7 +162,7 @@
 }
 
 .calendar-day {
-    aspect-ratio: 1;
+    /* aspect-ratio: 1; */
     border-radius: var(--radius-md);
     background: var(--color-bg);
     padding: 10px;
@@ -212,9 +212,9 @@
 
 .sleep-bar {
     width: 100%;
-    height: 18px;
+    height: 10px;
     background: linear-gradient(135deg, #e8e4f0 0%, #d8d0e8 100%);
-    border-radius: 12px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -228,7 +228,7 @@
     position: absolute;
     left: 0; top: 0;
     height: 100%;
-    border-radius: 12px;
+    border-radius: 8px;
     transition: width var(--transition-base);
 }
 
@@ -275,7 +275,7 @@
 .monthly-fractions {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 1px;
 }
 
 .month-fraction-row {
@@ -293,16 +293,16 @@
 
 .month-fraction-bar-track {
     flex: 1;
-    height: 24px;
+    height: 10px;
     background: var(--color-bg-secondary);
-    border-radius: var(--radius-md);
+    border-radius: 2px;
     overflow: hidden;
 }
 
 .month-fraction-bar-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-    border-radius: var(--radius-md);
+    border-radius: 2px;
     transition: width var(--transition-slow);
 }
 
@@ -325,7 +325,7 @@
 .sleep-distribution {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 1px;
     margin-top: var(--spacing-sm);
 }
 
@@ -346,13 +346,13 @@
     flex: 1;
     display: flex;
     align-items: center;
-    height: 34px;
+    height: 10px;
 }
 
 .distribution-fill {
-    height: 34px;
+    height: 15px;
     background: linear-gradient(90deg, #5B8FBF 0%, #7eb8d9 100%);
-    border-radius: var(--radius-md);
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -403,33 +403,42 @@
 .year-grid-container {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 1px;
+    overflow: hidden;
+    width: 100%;
 }
 
 .year-month-row {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: 4px;
+    width: 100%;
 }
 
 .year-month-label {
     min-width: 36px;
-    font-size: 12px;
+    width: 5%;
+    font-size: clamp(4px, 0.7vw, 7px);
     font-weight: 700;
     color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .year-month-days {
     display: flex;
-    gap: 3px;
-    flex-wrap: nowrap;
+    gap: 1px;
+    flex: 1;
+    justify-content: space-between;
 }
 
 .year-day-cell {
-    width: 22px;
-    height: 22px;
+    width: calc((100% - 30px) / 31);
+    aspect-ratio: 1;
+    max-width: 22px;
+    min-width: 8px;
+   /* height: 22px;*/
     border-radius: 4px;
     background: var(--color-bg-secondary);
     display: flex;
@@ -449,14 +458,14 @@
 }
 
 .year-dow-label {
-    font-size: 7px;
+    font-size: clamp(4px, 0.7vw, 7px);
     font-weight: 800;
     color: var(--color-text-secondary);
     text-transform: uppercase;
 }
 
 .year-day-num {
-    font-size: 7px;
+    font-size: clamp(4px, 0.7vw, 7px);
     font-weight: 600;
     color: rgba(0,0,0,0.5);
     line-height: 1;
@@ -465,22 +474,168 @@
 
 /* Mobile */
 @media (max-width: 768px) {
-    .sleep-view { padding: var(--spacing-md); }
-    .view-header { flex-direction: column; gap: var(--spacing-md); align-items: flex-start; }
-    .view-header h1 { font-size: 24px; }
-    .view-mode-toggle { width: 100%; }
-    .view-mode-toggle button { flex: 1; justify-content: center; font-size: 12px; }
-    .quick-stats { grid-template-columns: 1fr; gap: var(--spacing-sm); max-width: 100%; }
-    .stat-value { font-size: 18px; }
-    .calendar-section { padding: var(--spacing-md); }
-    .calendar-grid { gap: 4px; }
-    .calendar-day { min-height: 85px; padding: 6px; }
-    .day-number { font-size: 13px; }
-    .time-text { font-size: 8px; }
-    .sleep-bar { height: 14px; }
-    .sleep-bar-text { font-size: 8px; }
-    .year-day-cell { width: 16px; height: 16px; }
-    .year-day-num { font-size: 6px; }
-    .year-month-label { min-width: 28px; font-size: 10px; }
-    .month-fraction-detail { display: none; }
+    .sleep-view { 
+        padding: var(--spacing-sm); 
+    }
+    
+    .view-header { 
+        gap: var(--spacing-sm); 
+        align-items: flex-start; 
+    }
+    
+    .view-header h1 { 
+        font-size: 22px; 
+        width: 100%;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+    
+    .view-mode-toggle { 
+        width: 100%; 
+    }
+    
+    .view-mode-toggle button { 
+        flex: 1; 
+        justify-content: center; 
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+    
+    .quick-stats {
+        gap: var(--spacing-xs); 
+        max-width: 100%; 
+    }
+    
+    .stat-card {
+        padding: var(--spacing-sm);
+    }
+    
+    .stat-value { 
+        font-size: 16px; 
+    }
+    
+    .calendar-section { 
+        padding: var(--spacing-sm); 
+    }
+    
+    .calendar-grid { 
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+    
+    .calendar-day { 
+        min-height: 65px;
+        padding: 3px; 
+    }
+    
+    .day-number { 
+        font-size: 10px; 
+    }
+    
+    .time-row {
+        gap: 2px;
+    }
+    
+    .time-text { 
+        font-size: 6px; 
+    }
+    
+    .sleep-bar { 
+        height: 10px; 
+        margin-top: -3px;
+    }
+    
+    .sleep-bar-text { 
+        font-size: 6px; 
+    }
+    
+    /* Year grid - fit to screen */
+    .year-grid-container {
+        overflow: visible;
+    }
+    
+    .year-month-row {
+        gap: var(--spacing-xs);
+    }
+    
+    .year-month-label { 
+        min-width: 20px;
+        font-size: 8px; 
+    }
+    
+    .year-month-days {
+        gap: 1px;  /* Tighter spacing */
+    }
+    
+    .year-day-cell { 
+        width: 10px;   /* Much smaller */
+        height: 10px; 
+    }
+    
+    .year-day-num { 
+        font-size: 4px; 
+        font-weight: 700;
+    }
+    
+    .year-dow-label {
+        font-size: 4px;
+    }
+    
+    .year-dow-header {
+        font-size: 6px;
+    }
+    
+    /* Stats cards */
+    .stats-card {
+        padding: var(--spacing-md);
+    }
+    
+    .stats-card h3 {
+        font-size: 16px;
+    }
+    
+    .month-fraction-detail { 
+        display: none; 
+    }
+    
+    .month-fraction-label {
+        min-width: 28px;
+        font-size: 11px;
+    }
+    
+    .month-fraction-pct {
+        min-width: 32px;
+        font-size: 11px;
+    }
+    
+    /* Distribution bars */
+    .distribution-label {
+        min-width: 24px;
+        font-size: 10px;
+    }
+    
+    .distribution-fill {
+        height: 15px;
+        font-size: 11px;
+        min-width: 10px;
+    }
+    
+    /* Legend */
+    .year-legend {
+        gap: var(--spacing-sm);
+        width: 100%;
+        overflow: hidden;
+    }
+    
+    .legend-item {
+        font-size: 10px;
+        gap: 4px;
+    }
+    
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+    }
 }

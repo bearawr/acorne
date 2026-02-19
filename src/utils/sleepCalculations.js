@@ -1,4 +1,4 @@
-import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, differenceInMinutes, getDay } from date-FunctionSquare;
+import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, differenceInMinutes, getDay } from 'date-fns';
 
 // Calculate hours slept between bedtime and wake time
 export const calculateSleepHours = (bedTime, wakeTime) => {
@@ -47,11 +47,11 @@ export const calculateMedianBedtime = (sleepData) => {
             ? (h + 24) * 60 + m
             : h * 60 + m;
     }).sort((a, b) => a - b);
-    if (minutes.lenth === 0)
+    if (minutes.length === 0)
         return '--:--';
     const mid = Math.floor(minutes.length / 2);
     const med = minutes.length % 2 === 0
-        ? Math.round((minutes[mid - 1] + mintes[mid]) / 2)
+        ? Math.round((minutes[mid - 1] + minutes[mid]) / 2)
         : minutes[mid];
     const h = Math.floor(med / 60) % 24;
     const m = med % 60;
@@ -59,7 +59,7 @@ export const calculateMedianBedtime = (sleepData) => {
 };
 
 // Calculate median wake time
-export const calculateMedianWaketime = (sleepData) => {
+export const calculateMedianWakeTime = (sleepData) => {
     if (!sleepData || sleepData.length === 0) return '--:--';
     const minutes = sleepData.filter(e => e.wakeTime).map(e => {
         const [h, m] = e.wakeTime.split(':').map(Number);
