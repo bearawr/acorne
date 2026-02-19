@@ -219,7 +219,7 @@ const renderCalendarView = () => {
 const renderStatsView = () => (
     <div className="stats-section">
 
-    {/* 1. Monthly Sleep Fraction */}
+    {/* 1. Monthly Sleep Fraction
     <div className="stats-card">
         <h3>Monthly Sleep vs Ideal ({CURRENT_YEAR})</h3>
         <p className="stat-subtitle">Actual sleep / Ideal (8h/day × days in month)</p>
@@ -235,7 +235,7 @@ const renderStatsView = () => (
             </div>
         ))}
         </div>
-    </div>
+    </div> */}
 
     {/* 2. Sleep Duration Distribution */}
     <div className="stats-card">
@@ -246,10 +246,10 @@ const renderStatsView = () => (
             <div key={hours} className="distribution-bar">
             <span className="distribution-label">{hours}h</span>
             <div className="distribution-visual">
-                {count > 0 ? (
+                {count > -1 ? (
                 <div
                     className="distribution-fill"
-                    style={{ width: `${(count / 365) * 100}%` }}
+                    style={{ width: `${(count / 10) * 100}%` }}
                 >
                     {count}
                 </div>

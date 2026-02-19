@@ -1,0 +1,294 @@
+.sleep-view {
+    padding: var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.view-header {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Sleep Tracker */
+.view-header h1 {
+    font-size: 30px;
+    margin: 0;
+    color: var(--color-primary);
+    font-family:'Times New Roman', Times, serif /*change*/;
+}
+
+/* Calendar Year Stats */
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.view-mode-toggle {
+    display: flex;
+    background-color: var(--color-bg-secondary);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.view-mode-toggle button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    font-weight: 500px;
+    font-size: 13px;
+    transition: all var(--transition-fast);
+}
+
+.view-mode-toggle button:hover {
+    color: var(--color-text);
+    background: rgba(255, 255, 255, 255);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* QUICK STATS */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: 10px;
+    /* max-width: 600px; */
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-card {
+    background: var(--color-surface);
+    border-radius: 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: center;
+    border: 1px solid var(--color-bg-tertiary);
+    transition: all var(--transition-fast);
+}
+
+.stat-label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+/* CALENDAR */
+.calendar-section {
+    background: var(--color-surface);
+    border-radius: 0px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--color-bg-tertiary)
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--color-bg-secondary);
+}
+
+.calendar-header h2 {
+    font-size: 22px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.calendar-header button {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 8px;
+    display: flex; /* centers vv */
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-header button:hover {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    padding-top: 10px;
+}
+
+.calendar-day {
+    background: var(--color-bg);
+    border-radius: 1px;
+    padding-left: 10px;
+    padding-right: 5px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 2px solid var(--color-bg-tertiary);
+}
+
+.calendar-day:hover {
+    background: var(--color-accent);
+    border-color: var(--color-primary-light);
+    transform: scale(1.01);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.calendar-day.today { border: 2px solid orange;}
+.calendar-day.today .day-number { font-weight: 700; }
+/* .calendar-day.has-data { background: #f5f3f0} */
+
+.day-number {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+}
+
+.sleep-times {
+    display: flex;
+    flex-direction: column;
+    font-size: max(8px, 12px);
+    font-weight: 300;
+}
+
+.time-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.time-text {font-weight: 600;}
+.time-text.blue { color: #619ce5; }
+.time-text.orange { color: #e89300; }
+.time-text.red { color: #e51414; }
+
+.sleep-bar {
+    background: linear-gradient(135deg, #e8e4f0 0%, #d8d0e8 100%);
+    width: 100%;
+    height: 15px;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+.sleep-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    border-radius: 8px;
+    transition: width var(--transition-base);
+}
+
+.sleep-bar-text {
+    position: relative;
+    /* z-index: 1; */
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* YEAR STATS TAB */
+.stats-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stats-card {
+    background: var(--color-surface);
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--color-bg-tertiary);
+}
+
+.stats-card h3 {
+    font-size: 18px;
+}
+
+.stat-subtitle {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+/* SLEEP DURATION COUNT */
+.sleep-distribution {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+
+.distribution-bar {
+    display: flex;
+    align-items: center;
+}
+
+.distribution-label {
+    min-width: 36px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.distribution-visual {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    height: 10px;
+}
+
+.distribution-fill {
+    height: 18px;
+    background: linear-gradient(90deg, #5B8FBF 0%, #7eb8d9 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    padding-right: 5px;
+    color: rgb(255, 255, 255);
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 18px;
+    transition: all var(--transition-base);
+    box-shadow: 0 2px 6px rgba(91,143,191,0.3);
+}
+
+/* .distribution-fill:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(91,143,191,0.4);
+} */
+/*
+.distribution-count {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    padding-left: var(--spacing-sm);
+} */
