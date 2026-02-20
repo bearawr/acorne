@@ -147,7 +147,7 @@
     padding-right: 5px;
     cursor: pointer;
     transition: all var(--transition-fast);
-    border: 2px solid var(--color-bg-tertiary);
+    border: 1px solid var(--color-bg-tertiary);
 }
 
 .calendar-day:hover {
@@ -157,7 +157,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.calendar-day.today { border: 2px solid orange;}
+.calendar-day.today { border: 2px solid orange; }
 .calendar-day.today .day-number { font-weight: 700; }
 /* .calendar-day.has-data { background: #f5f3f0} */
 
@@ -267,8 +267,9 @@
 
 .distribution-fill {
     height: 18px;
-    background: linear-gradient(90deg, #5B8FBF 0%, #7eb8d9 100%);
-    border-radius: 8px;
+    background: black;
+    padding-top: 1px;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: right;
@@ -292,3 +293,98 @@
     font-weight: 600;
     padding-left: var(--spacing-sm);
 } */
+
+/* YEAR GRID */
+.year-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center; /*Not done */
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    margin-right: 5px;
+    border-radius: 2px;
+}
+
+.year-grid-container {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+}
+
+.year-month-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.year-month-label {
+    min-width: 32px;
+    width: 5%;
+    font-size: clamp(10px, 1.2vw, 20px);
+    font-weight: 700px;
+}
+
+.year-month-days {
+    display: grid;
+    grid-template-columns: repeat(37, 1fr);
+    gap: 1px;
+    margin-bottom: 1px;
+    flex: 1; /* fill available space */
+}
+
+.year-day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast);
+    border-radius: 2px;
+}
+
+.year-dow-label {
+    font-size: clamp(5px, 0.7vw, 15px);
+    font-weight: 800;
+}
+
+.year-day-num {
+    font-size: clamp(5px, 0.7vw, 15px);
+    font-weight: 800;
+}
+
+/* Mobile - SUltra23 */
+@media (max-width: 1440px) {
+    .sleep-view { padding: 15px; }
+    .view-header h1 { font-size: 22px; width: 100%; }
+    .view-header { align-items: flex-start; }
+    .header-actions { width: 100%; }
+    .view-mode-toggle { width: 100%; }
+    .view-mode-toggle button { flex: 1; justify-content: center; font-size: 11px; padding: 4px; }
+    .stat-card { padding: 5px; }
+    .stat-value { font-size: 13px; }
+    .calendar-section { padding: 10px;}
+    .calendar-day { padding: 3px; }
+    .day-number {
+        display: flex;
+        font-size: 8px; 
+        align-items: flex-start;
+    }
+    .time-row { gap: 2px; justify-content: center;}
+    .time-text { font-size: 1.2vw; }
+    .sleep-bar { height: 1.5vw; }
+    .sleep-bar-text { font-size: 1.2vw; }
+}

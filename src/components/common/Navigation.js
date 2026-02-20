@@ -25,7 +25,7 @@ const Navigation = ({ currentView, onViewChange }) => {
     <nav className="navigation">
       <div className="nav-brand">
         <h1>Acorne</h1>
-        <p className="nav-subtitle">Your 2026 Journey</p>
+        <p className="nav-subtitle"> 2026 Stats </p>
       </div>
       
       {/* Desktop view */}
