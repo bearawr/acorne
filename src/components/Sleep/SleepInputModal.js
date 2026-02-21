@@ -9,6 +9,15 @@ const SleepInputModal = ({ date, existingEntry, onSave, onDelete, onClose }) => 
     const [wakeTime, setWakeTime] = useState('');
     const [notes, setNotes] = useState('');
 
+    const formatHoursToHM = (decimalHours) => {
+        if (!decimalHours || decimalHours === 0) return '0h';
+        const h = Math.floor(parseFloat(decimalHours));
+        const m = Math.round((parseFloat(decimalHours) - h) * 60);
+        if (m === 0) return `${h}h`;
+        if (h === 0) return `${m}m`;
+        return `${h}h ${m}m`;
+    };
+
     useEffect(() => {
         if (existingEntry) {
             setBedTime(existingEntry.bedTime || '');
@@ -19,12 +28,10 @@ const SleepInputModal = ({ date, existingEntry, onSave, onDelete, onClose }) => 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-    
         if (!bedTime || !wakeTime) {
-        alert('Please enter both bedtime and wake time');
-        return;
+            alert('Enter BOTH bedtime and wake time');
+            return;
         }
-
         const hoursSlept = calculateSleepHours(bedTime, wakeTime);
         const entryDate = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
 
@@ -50,83 +57,83 @@ const SleepInputModal = ({ date, existingEntry, onSave, onDelete, onClose }) => 
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-            <div>
-                <h2>Sleep Entry</h2>
-                <p className="modal-date">{displayDate}</p>
-            </div>
-            <button className="btn-icon" onClick={onClose}>
-                <X size={24} />
-            </button>
-            </div>
-
-        <form onSubmit={handleSubmit} className="sleep-form">
-            <div className="form-row">
-            <div className="form-group">
-                <label htmlFor="bedTime">
-                    🌙 Bedtime
-                </label>
-                <input
-                    type="time"
-                    id="bedTime"
-                    value={bedTime}
-                    onChange={e => setBedTime(e.target.value)}
-                    required
-                />
-            </div>
-
-            <div className="form-group">
-                <label htmlFor="wakeTime">
-                    ☀️ Wake Time
-                </label>
-                <input
-                    type="time"
-                    id="wakeTime"
-                    value={wakeTime}
-                    onChange={e => setWakeTime(e.target.value)}
-                    required
-                />
-            </div>
-            </div>
-
-            {calculatedHours && (
-                <div className="calculated-hours">
-                    <p>Total Sleep: <strong>{calculatedHours} hours</strong></p>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <div>
+                        <h2>Sleep Entry</h2>
+                        <p className="modal-date">{displayDate}</p>
+                    </div>
+                    <button className="btn-icon" onClick={onClose} type="button">
+                        <X size={24} />
+                    </button>
                 </div>
-            )}
 
-            <div className="form-group">
-            <label htmlFor="notes">Notes (optional)</label>
-            <textarea
-                id="notes"
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder="How did you sleep? Any dreams or observations?"
-                rows={3}
-            />
-            </div>
+                <form onSubmit={handleSubmit} className="sleep-form">
+                    {/* NEW WRAPPER: This puts the inputs and the calc box in one row */}
+                    <div className="form-main-row">
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="bedTime">Bedtime</label>
+                                <input
+                                    type="time"
+                                    id="bedTime"
+                                    value={bedTime}
+                                    onChange={e => setBedTime(e.target.value)}
+                                    required
+                                />
+                            </div>
 
-            <div className="modal-actions">
-            {existingEntry && (
-                <button type="button" className="btn-danger" onClick={handleDelete}>
-                    <Trash2 size={18} />
-                    Delete
-                </button>
-            )}
-            <div className="action-group">
-                <button type="button" className="btn-secondary" onClick={onClose}>
-                    Cancel
-                </button>
-                <button type="submit" className="btn-primary">
-                    <Save size={18} />
-                    Save Entry
-                </button>
+                            <div className="form-group">
+                                <label htmlFor="wakeTime">Wake Time</label>
+                                <input
+                                    type="time"
+                                    id="wakeTime"
+                                    value={wakeTime}
+                                    onChange={e => setWakeTime(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {calculatedHours !== null && (
+                            <div className="calculated-hours">
+                                <p>Total</p>
+                                <strong>{formatHoursToHM(calculatedHours)}</strong>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="notes">Notes</label>
+                        <textarea
+                            id="notes"
+                            value={notes}
+                            onChange={e => setNotes(e.target.value)}
+                            placeholder="How was sleep?"
+                            rows={15} // Adjusted from 10 to 6 to save vertical space
+                        />
+                    </div>
+
+                    <div className="modal-actions">
+                        {existingEntry && (
+                            <button type="button" className="btn-danger" onClick={handleDelete}>
+                                <Trash2 size={18} />
+                                Delete
+                            </button>
+                        )}
+                        <div className="action-group">
+                            <button type="button" className="btn-secondary" onClick={onClose}>
+                                Cancel
+                            </button>
+                            <button type="submit" className="btn-primary">
+                                <Save size={18} />
+                                Save Entry
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            </div>
-        </form>
         </div>
-    </div>
     );
 };
 

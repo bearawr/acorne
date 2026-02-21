@@ -47,7 +47,7 @@ const Navigation = ({ currentView, onViewChange }) => {
 
       {/* Mobile dropdown */}
       <div className="nav-dropdown-container">
-        <button 
+        <button
           className="nav-dropdown-trigger"
           onClick={() => setIsOpen(!isOpen)}
         >
