@@ -78,20 +78,20 @@ const medianBedtime  = useMemo(() => formatTo12Hour(calculateMedianBedtime(sleep
 const medianWakeTime = useMemo(() => formatTo12Hour(calculateMedianWakeTime(sleepData)), [sleepData]);
 
 // Monthly sleep fraction for each month of the year
-const monthlyFractions = useMemo(() => {
-    const yearStart = new Date(CURRENT_YEAR, 0, 1);
-    const yearEnd   = new Date(CURRENT_YEAR, 11, 31);
-    return eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(monthDate => {
-    const mStart = startOfMonth(monthDate);
-    const mEnd   = endOfMonth(monthDate);
-    const daysInM = getDaysInMonth(monthDate);
-    const ideal   = daysInM * 8; // 8h ideal per day
-    const monthData = getSleepInRange(sleepData, mStart, mEnd);
-    const actual = monthData.reduce((sum, e) => sum + parseFloat(e.hoursSlept || 0), 0);
-    const pct = ideal > 0 ? Math.min((actual / ideal) * 100, 100) : 0;
-    return { label: format(monthDate, 'MMM'), actual: actual.toFixed(1), ideal, pct: pct.toFixed(0), daysTracked: monthData.length };
-    });
-}, [sleepData]);
+// const monthlyFractions = useMemo(() => {
+//     const yearStart = new Date(CURRENT_YEAR, 0, 1);
+//     const yearEnd   = new Date(CURRENT_YEAR, 11, 31);
+//     return eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(monthDate => {
+//     const mStart = startOfMonth(monthDate);
+//     const mEnd   = endOfMonth(monthDate);
+//     const daysInM = getDaysInMonth(monthDate);
+//     const ideal   = daysInM * 8; // 8h ideal per day
+//     const monthData = getSleepInRange(sleepData, mStart, mEnd);
+//     const actual = monthData.reduce((sum, e) => sum + parseFloat(e.hoursSlept || 0), 0);
+//     const pct = ideal > 0 ? Math.min((actual / ideal) * 100, 100) : 0;
+//     return { label: format(monthDate, 'MMM'), actual: actual.toFixed(1), ideal, pct: pct.toFixed(0), daysTracked: monthData.length };
+//     });
+// }, [sleepData]);
 
 // Sleep duration distribution (all-time)
 const sleepDistribution = useMemo(() => {
@@ -242,23 +242,21 @@ const renderStatsView = () => (
         <h3>Sleep Duration Count</h3>
         <p className="stat-subtitle">Number of nights slept per duration (all time)</p>
         <div className="sleep-distribution">
-        {Object.entries(sleepDistribution).map(([hours, count]) => (
-            <div key={hours} className="distribution-bar">
-            <span className="distribution-label">{hours}h</span>
-            <div className="distribution-visual">
-                {count > -1 ? (
-                <div
-                    className="distribution-fill"
-                    style={{ width: `${(count / 10) * 100}%` }}
-                >
-                    {count}
+            {Object.entries(sleepDistribution).map(([hours, count]) => (
+                <div key={hours} className="distribution-bar">
+                    <span className="distribution-label">{hours}h</span>
+                    <div className="distribution-visual">
+                        <div
+                            className="distribution-fill"
+                            style={{ width: `${(count / 312) * 100}%` }}
+                        >
+                            {/* The count is no longer inside here */}
+                        </div>
+                        {/* Now the count sits next to the bar */}
+                        <span className="distribution-count">{count}</span>
+                    </div>
                 </div>
-                ) : (
-                <span className="distribution-count">0</span>
-                )}
-            </div>
-            </div>
-        ))}
+            ))}
         </div>
     </div>
 

@@ -27,7 +27,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 180px;
+    max-width: 100%;
 }
 
 .view-mode-toggle {
@@ -249,6 +249,7 @@
 .distribution-bar {
     display: flex;
     align-items: center;
+    margin-bottom: 8px;
 }
 
 .distribution-label {
@@ -262,37 +263,23 @@
     flex: 1;
     display: flex;
     align-items: center;
-    height: 10px;
+    gap: 10px;
 }
 
 .distribution-fill {
-    height: 18px;
+    height: 12px;        /* Slightly thinner bar looks cleaner when empty */
     background: black;
-    padding-top: 1px;
     border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: right;
-    padding-right: 5px;
-    color: rgb(255, 255, 255);
-    font-weight: 700;
-    font-size: 14px;
-    min-width: 18px;
-    transition: all var(--transition-base);
-    box-shadow: 0 2px 6px rgba(91,143,191,0.3);
+    transition: width var(--transition-base);
+    min-width: 2px;
 }
 
-/* .distribution-fill:hover {
-    filter: brightness(1.1);
-    box-shadow: 0 4px 12px rgba(91,143,191,0.4);
-} */
-/*
 .distribution-count {
     font-size: 13px;
-    color: var(--color-text-secondary);
-    font-weight: 600;
-    padding-left: var(--spacing-sm);
-} */
+    color: var(--color-text);
+    font-weight: 700;
+    min-width: 20px;
+}
 
 /* YEAR GRID */
 .year-legend {
@@ -388,3 +375,4 @@
     .sleep-bar { height: 1.5vw; }
     .sleep-bar-text { font-size: 1.2vw; }
 }
+
