@@ -1,10 +1,6 @@
-import React, { useState } from "react";
-    /*
-        Imports 'default export'.
-        useState is a function that allows us to add a state to the
-        functional component. 'state' enables dynamic webs for data that changes,
-        else, it would be a static page
-    */
+import React, { useState, useEffect } from "react";
+import { auth, googleProvider } from './firebase';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import Navigation from './components/common/Navigation';
 import './App.css';
 import './styles/index.css';
@@ -17,8 +13,34 @@ import Weight from './components/Weight/Weight';
 
 function App() {
     const [currentView, setCurrentView] = useState('sleep');
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Decides which components to return
+    // Listen for auth state changes
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+            setLoading(false);
+        });
+        return unsubscribe; // cleanup on unmount
+    }, []);
+
+    const handleLogin = async () => {
+        try {
+            await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+            console.error('Login error:', error);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
+
     const renderView = () => {
         switch(currentView) {
             case 'sleep': return <Sleep />;
@@ -31,14 +53,36 @@ function App() {
         }
     };
 
+    // Still checking auth state
+    if (loading) {
+        return <div className="app">Loading...</div>;
+    }
+
+    // Not logged in — show login screen
+    if (!user) {
+        return (
+            <div className="app login-screen">
+                <h1>Acorne</h1>
+                <p>Please sign in to continue</p>
+                <button onClick={handleLogin} className="login-button">
+                    Sign in with Google
+                </button>
+            </div>
+        );
+    }
+
+    // Logged in — show the app
     return (
         <div className="app">
             <Navigation currentView={currentView} onViewChange={setCurrentView} />
             <main className="main-content">
                 {renderView()}
             </main>
+            <button onClick={handleLogout} className="logout-button">
+                Sign out
+            </button>
         </div>
     );
 }
 
-export default App; // makes available to index.js
+export default App;
