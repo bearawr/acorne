@@ -49,3 +49,7 @@ Track:
 
 ### Removed
 - App.test
+
+## 22-02-2026
+- installed firebase
+- added .env file
