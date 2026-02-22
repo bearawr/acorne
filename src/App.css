@@ -10,6 +10,41 @@
     background: var(--color-bg);
 }
 
+.login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 16px;
+}
+
+.login-button {
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-bg-tertiary);
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.login-button:hover {
+    background: var(--color-bg-tertiary);
+    border: 2px solid var(--color-bg-tertiary);
+}
+
+.logout-button {
+    position: fixed;
+    bottom: 16px;
+    left: 10px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: var(--color-text-tertiary);
+    border: 2px solid var(--color-bg-tertiary);
+    background: var(--color-bg-secondary);
+}
+
 /* @media: A 'Breakpoint' that triggers only when the screen width is 768px or smaller (Tablets/Phones) */
 @media (max-width: 768px) {
     .app {

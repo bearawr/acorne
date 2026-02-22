@@ -38,6 +38,19 @@ Track:
 - App.js
 - utils folder
     - storage.js
+- New Branch (Dev)
+    - feature/sleep-tracker
+        - sleepCalculations.js
+            - calculate sleep hours
+            - get sleep in range
+            - calc median sleep hours
+            - calc median bed time
+            - calc median wake time
 
 ### Removed
 - App.test
+
+## 22-02-2026
+- installed firebase
+- added .env file
+- update sleep.js to account for async firebase

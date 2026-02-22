@@ -1,23 +1,48 @@
-import React, { useState } from "react";
-    /*
-        Imports 'default export'.
-        useState is a function that allows us to add a state to the
-        functional component. 'state' enables dynamic webs for data that changes,
-        else, it would be a static page
-    */
-import Navigation from './components/common/Navigation'
-import './App.css'
-import './styles/index.css'
-import Sleep from './components/Sleep'
-import Fitness from './components/Fitness'
-import Hobbies from './components/Hobbies'
-import School from './components/School'
-import Chores from './components/Chores'
+import React, { useState, useEffect } from "react";
+import { auth } from './firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import Navigation from './components/common/Navigation';
+import './App.css';
+import './styles/index.css';
+import Sleep from './components/Sleep/Sleep';
+import Fitness from './components/Fitness/Fitness';
+import Hobbies from './components/Hobbies/Hobbies';
+import School from './components/School/School';
+import Chores from './components/Chores/Chores';
+import Weight from './components/Weight/Weight';
 
 function App() {
     const [currentView, setCurrentView] = useState('sleep');
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loginError, setLoginError] = useState(null);
 
-    // Decides which components to return
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+            setLoading(false);
+        });
+        return unsubscribe;
+    }, []);
+
+    const handleLogin = async () => {
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            setLoginError(error.message);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
+
     const renderView = () => {
         switch(currentView) {
             case 'sleep': return <Sleep />;
@@ -30,14 +55,47 @@ function App() {
         }
     };
 
+    if (loading) {
+        return <div className="app">Loading...</div>;
+    }
+
+    if (!user) {
+        return (
+            <div className="app login-screen">
+                <h1>Acorne</h1>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    style={{ padding: '10px', fontSize: '16px', width: '250px', marginBottom: '8px' }}
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    style={{ padding: '10px', fontSize: '16px', width: '250px', marginBottom: '8px' }}
+                />
+                {loginError && <p style={{ color: 'red', fontSize: '12px', maxWidth: '300px' }}>{loginError}</p>}
+                <button onClick={handleLogin} className="login-button">
+                    Sign in
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div className="app">
             <Navigation currentView={currentView} onViewChange={setCurrentView} />
             <main className="main-content">
                 {renderView()}
             </main>
+            <button onClick={handleLogout} className="logout-button">
+                Sign out
+            </button>
         </div>
     );
 }
 
-export default App; // makes available to index.js
+export default App;

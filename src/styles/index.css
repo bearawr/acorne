@@ -3,7 +3,7 @@
     --color-primary-light: #af8849;
     --color-primary-dark: #5d3712;
     --color-secondary: #c9b6a1;
-    --color-accent: #f4af48;
+    --color-accent: #fffcd6;
     
     /* Neutrals with warmth */
     --color-bg: #faf9f7;
@@ -30,7 +30,7 @@
     --shadow-lg: 0 8px 24px rgba(45, 42, 38, 0.16);
     
     /* Border radius */
-    --radius-sm: 8px;
+    --radius-button: 4px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
@@ -44,7 +44,7 @@
     --spacing-2xl: 48px;
     
     /* Typography */
-    --font-display: 'Crimson Pro', serif;
+    --font-display: 'DM Sans', serif;
     --font-body: 'DM Sans', -apple-system, sans-serif;
     
     /* Transitions */
