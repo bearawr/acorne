@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { auth, googleProvider } from './firebase';
-import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import Navigation from './components/common/Navigation';
 import './App.css';
 import './styles/index.css';
@@ -15,21 +15,23 @@ function App() {
     const [currentView, setCurrentView] = useState('sleep');
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loginError, setLoginError] = useState(null);
 
-    // Listen for auth state changes
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setLoading(false);
         });
-        return unsubscribe; // cleanup on unmount
+        return unsubscribe;
     }, []);
 
     const handleLogin = async () => {
         try {
-            await signInWithPopup(auth, googleProvider);
+            await signInWithEmailAndPassword(auth, email, password);
         } catch (error) {
-            console.error('Login error:', error);
+            setLoginError(error.message);
         }
     };
 
@@ -53,25 +55,36 @@ function App() {
         }
     };
 
-    // Still checking auth state
     if (loading) {
         return <div className="app">Loading...</div>;
     }
 
-    // Not logged in — show login screen
     if (!user) {
         return (
             <div className="app login-screen">
                 <h1>Acorne</h1>
-                <p>Please sign in to continue</p>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    style={{ padding: '10px', fontSize: '16px', width: '250px', marginBottom: '8px' }}
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    style={{ padding: '10px', fontSize: '16px', width: '250px', marginBottom: '8px' }}
+                />
+                {loginError && <p style={{ color: 'red', fontSize: '12px', maxWidth: '300px' }}>{loginError}</p>}
                 <button onClick={handleLogin} className="login-button">
-                    Sign in with Google
+                    Sign in
                 </button>
             </div>
         );
     }
 
-    // Logged in — show the app
     return (
         <div className="app">
             <Navigation currentView={currentView} onViewChange={setCurrentView} />
