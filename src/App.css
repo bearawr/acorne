@@ -10,6 +10,31 @@
     background: var(--color-bg);
 }
 
+.login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 16px;
+}
+
+.login-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.logout-button {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
 /* @media: A 'Breakpoint' that triggers only when the screen width is 768px or smaller (Tablets/Phones) */
 @media (max-width: 768px) {
     .app {
