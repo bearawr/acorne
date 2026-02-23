@@ -70,8 +70,121 @@ export const storage = {
         }
     },
 
-    // ─── PLACEHOLDERS (ready to fill in later) ───────────────
+    // ─── WEIGHT ───────────────────────────────────────────────
+
+    // Goals
+    getWeightGoals: async () => {
+        try {
+            const ref = userCollection('weightGoals');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) {
+            console.error('Error getting weight goals:', error);
+            return [];
+        }
+    },
+
+    addWeightGoal: async (goal) => {
+        try {
+            const ref = userCollection('weightGoals');
+            const docRef = await addDoc(ref, goal);
+            return docRef.id;
+        } catch (error) {
+            console.error('Error adding weight goal:', error);
+            return null;
+        }
+    },
+
+    updateWeightGoal: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'weightGoals', id);
+            await updateDoc(ref, updates);
+            return true;
+        } catch (error) {
+            console.error('Error updating weight goal:', error);
+            return false;
+        }
+    },
+
+    deleteWeightGoal: async (id) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'weightGoals', id);
+            await deleteDoc(ref);
+            return true;
+        } catch (error) {
+            console.error('Error deleting weight goal:', error);
+            return false;
+        }
+    },
+
+    // Entries
+    getWeightEntries: async (goalId) => {
+        try {
+            const uid = getUserId();
+            const ref = collection(db, 'users', uid, 'weightGoals', goalId, 'entries');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.date.localeCompare(b.date));
+        } catch (error) {
+            console.error('Error getting weight entries:', error);
+            return [];
+        }
+    },
+
+    addWeightEntry: async (goalId, entry) => {
+        try {
+            const uid = getUserId();
+            const ref = collection(db, 'users', uid, 'weightGoals', goalId, 'entries');
+            await addDoc(ref, entry);
+            return true;
+        } catch (error) {
+            console.error('Error adding weight entry:', error);
+            return false;
+        }
+    },
+
+    updateWeightEntry: async (goalId, entryId, updates) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'weightGoals', goalId, 'entries', entryId);
+            await updateDoc(ref, updates);
+            return true;
+        } catch (error) {
+            console.error('Error updating weight entry:', error);
+            return false;
+        }
+    },
+
+    deleteWeightEntry: async (goalId, entryId) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'weightGoals', goalId, 'entries', entryId);
+            await deleteDoc(ref);
+            return true;
+        } catch (error) {
+            console.error('Error deleting weight entry:', error);
+            return false;
+        }
+    },
+
+    // 2026 Overview — all entries across all goals
+    getAllWeightEntries2026: async () => {
+        try {
+            const goals = await storage.getWeightGoals();
+            const allEntries = await Promise.all(
+                goals.map(g => storage.getWeightEntries(g.id))
+            );
+            return allEntries.flat().filter(e => e.date.startsWith('2026')).sort((a, b) => a.date.localeCompare(b.date));
+        } catch (error) {
+            console.error('Error getting 2026 weight entries:', error);
+            return [];
+        }
+    },
+
     getWeightData: async () => [],
+
+    // ─── PLACEHOLDERS (ready to fill in later) ───────────────
     getFitnessData: async () => [],
     getSchoolData: async () => [],
     getHobbiesData: async () => [],
