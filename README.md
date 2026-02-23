@@ -19,7 +19,7 @@ A Progressive Web App (PWA) that tracks sleep, weight, school, chores, and hobbi
 
 ## Road Map
 
-- [ ] Sleep Tracker
+- [x] Sleep Tracker
 - [ ] Weight Tracker
 - [ ] Fitness Tracker
 - [ ] Chores Tracker
