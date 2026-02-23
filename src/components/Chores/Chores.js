@@ -1,5 +1,5 @@
 import React from 'react';
-import '../Weight/Weight.css';
+import '../common/placeholder.css';
 
 const Chores = () => {
     return (
