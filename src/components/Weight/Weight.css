@@ -11,8 +11,13 @@
     margin-bottom: 16px;
 }
 
-.weight-header button, .new-goal-form button, .goal-card button {
-    background: white;
+.weight-header h1 {
+    font-size: 25px;
+}
+
+.weight-header button {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
     border: 2px solid var(--color-bg-tertiary);
     border-radius: 4px;
     padding: 6px 10px;
@@ -20,45 +25,153 @@
     margin: 10px;
     cursor: pointer;
     font-size: 13px;
+    font-weight: 600;
 }
 
-.weight-header button:hover, .new-goal-form button:hover, .goal-card button:hover {
-    background: var(--color-bg-secondary);
+.weight-header button:hover {
+    background: white;
     border: 2px solid var(--color-bg-tertiary);
     cursor: pointer;
 }
 
-.weight-header h1 {
-    font-size: 25px;
+.goals-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /*fr -> fractional unit */
+    gap: 10px;
 }
+
+.goal-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 12px;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid var(--color-bg-tertiary);
+}
+
+.goal-card:hover {
+    border: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.goal-card p {
+    font-size: 12px;
+}
+
+.edit-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-menu input {
+    padding: 5px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-actions button {
+    flex: 1;
+    padding: 5px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid var(--color-bg-tertiary);
+    background: var(--color-bg-secondary);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.delete-btn:hover {
+    background: var(--color-error);
+    border: 1px solid var(--color-error);
+    color: var(--color-text-inverse);
+}
+
+.cancel-btn:hover {
+    background: var(--color-accent);
+}
+
+.save-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-primary);
+}
+
+.edit-btn {
+    align-self: flex-end;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    background: none;
+    font-weight: 600;
+    border: 2px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+}
+
+.edit-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: 2px solid var(--color-primary);
+}
+
+/* New Form */
+.new-goal-form {
+    gap: 8px;
+    padding: 15px;
+}
+
+.new-goal-form input {
+    padding: 4px;
+    margin: 5px 0px 0px 5px;
+}
+
+.input-group label {
+    margin-right: 5px;
+}
+
+.input-group {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Weight Stats */
 
 .weight-stats-row {
     display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    background: blue;
-    border-radius: 4px;
-    padding: 5px 10px;
+    justify-content:间;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
 }
 
 .weight-stats-row div {
-    min-width: 60px;
-    background: pink;
+    flex: 1;
 }
 
-.weight-stats-row p {
-    font-size: 12px;
-    color: var(--color-text-secondary);
-    margin: 0;
+.weight-stats-row small {
+    color: #666;
+    text-transform: uppercase;
+    font-size: 0.7rem;
 }
 
-.weight-log-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    background: brown;
+.weight-stats-row strong {
+    font-size: 1.2rem;
+}
+
+.day-count {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: normal;
 }
 
 .weight-log-row input {
@@ -67,47 +180,29 @@
     width: 200px;
 }
 
-.goal-card {
-    padding: 12px;
-    margin-bottom: 8px;
-    background: var(--color-bg-secondary);
-    cursor: pointer;
-    border-radius: 2px;
-}
-
-/* .goal-card button {
-    border: 2px solid var(--color-bg-tertiary);
-    padding: 5px 10px;
-    font-size: 10px;
-} */
-
-.goal-card p {
-    background: white;
-    font-size: 12px;
-}
-
-.goal-card-row {
+.weight-log-row {
     display: flex;
-    justify-content: space-between;
+    gap: 10px;
+    margin: 20px 0;
     align-items: center;
-    background: white;
 }
 
-.new-goal-form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 300px;
-    margin-top: 16px;
+.weight-log-row button {
     background: white;
     padding: 10px;
+    border-radius: 4px;
     border: 2px solid var(--color-bg-tertiary);
-    border-radius: 2px;
 }
 
-.new-goal-form input {
+.date-input, .weight-input {
     padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
     font-size: 14px;
+}
+
+.weight-input {
+    width: 120px;
 }
 
 .weight-table {
@@ -123,5 +218,73 @@
     border-bottom: 1px solid var(--color-bg-tertiary);
 }
 
-.progress-good { color: green; }
-.progress-bad { color: red; }
+
+.weight-grid-expanded {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.weight-grid-expanded th, .weight-grid-expanded td {
+    border: 1px solid #e2e8f0;
+    padding: 8px 4px;
+}
+
+.sub-head {
+    font-size: 0.7rem;
+    background-color: #f8fafc;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.week-label {
+    background-color: #f1f5f9;
+    font-weight: bold;
+}
+
+.weight-cell {
+    font-weight: 600;
+    color: #1e293b;
+    min-width: 45px;
+}
+
+.progress-cell {
+    font-size: 0.75rem;
+    background-color: #fbfcfe; /* Very slight tint to distinguish from weight */
+    min-width: 40px;
+    border-right: 2px solid #e2e8f0 !important; /* Thick line between days */
+}
+
+/* Color logic for progress */
+.progress-good { color: #059669; font-weight: bold; } /* Green */
+.progress-bad { color: #dc2626; font-weight: bold; }  /* Red */
+
+.goal-progress-container {
+    margin: 10px 0 30px 0;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 10px;
+    background-color: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: #3b82f6; /* A nice blue, or use #059669 for green */
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+}
