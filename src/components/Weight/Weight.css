@@ -1,65 +1,377 @@
-.placeholder-view {
+.weight-view {
+    padding: 16px;
+    display: grid;
+}
+
+.weight-header {
     display: flex;
+    justify-content: space-between;
+    gap: 10px;
     align-items: center;
-    justify-content: center;
-    min-height: 80vh;
-    padding: var(--spacing-2xl);
-  }
-  
-.placeholder-content {
-    text-align: center;
-    max-width: 600px;
-}
-  
-.placeholder-icon {
-    font-size: 80px;
-    margin-bottom: var(--spacing-lg);
-    animation: pulse 2s ease-in-out infinite;
-}
-  
-.placeholder-content h1 {
-    font-size: 48px;
-    margin-bottom: var(--spacing-md);
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
-.placeholder-content p {
-    font-size: 18px;
-    color: var(--color-text-secondary);
-    margin-bottom: var(--spacing-xl);
+.weight-header h1 {
+    font-size: 1.5rem;
+    color: var(--color-primary);
 }
 
-.placeholder-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-    justify-content: center;
-    margin-top: var(--spacing-xl);
-}
-
-.feature-tag {
-    padding: var(--spacing-sm) var(--spacing-lg);
+.weight-header button {
     background: var(--color-bg-secondary);
-    border-radius: var(--radius-lg);
-    font-size: 14px;
-    font-weight: 500;
+    color: var(--color-text);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: var(--color-text-secondary);
+    margin: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.weight-header button:hover {
+    background: white;
+    border: 1px solid var(--color-bg-tertiary);
+    cursor: pointer;
+}
+
+.goals-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /*fr -> fractional unit */
+    gap: 10px;
+}
+
+.goal-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 12px;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid var(--color-bg-tertiary);
+}
+
+.goal-card:hover {
+    border: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.goal-card p {
+    font-size: 12px;
+}
+
+.edit-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-menu input {
+    padding: 5px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-actions button {
+    flex: 1;
+    padding: 5px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid var(--color-bg-tertiary);
+    background: var(--color-bg-secondary);
+    font-weight: 600;
     color: var(--color-text-secondary);
 }
 
-@media (max-width: 768px) {
-    .placeholder-icon {
-      font-size: 60px;
-    }
-  
-    .placeholder-content h1 {
-      font-size: 36px;
-    }
-  
-    .placeholder-content p {
-      font-size: 16px;
-    }
+.delete-btn:hover {
+    background: var(--color-error);
+    border: 1px solid var(--color-error);
+    color: var(--color-text-inverse);
 }
-  
+
+.cancel-btn:hover {
+    background: var(--color-accent);
+}
+
+.save-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-primary);
+}
+
+.edit-btn {
+    align-self: flex-end;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    background: none;
+    font-weight: 600;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    width: 70px;
+}
+
+.edit-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-primary);
+}
+
+/* New Form */
+.new-goal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 15px;
+    max-width: 40vw;
+    background: white;
+    z-index: 1000;
+    position: absolute;
+    right: 50px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
+    box-shadow: var(--shadow-lg);
+}
+
+.new-goal-form input {
+    padding: 4px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
+}
+
+.new-goal-form button:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-primary);
+}
+
+.input-group label {
+    margin-right: 5px;
+}
+
+.input-group {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Weight Stats */
+.back-btn {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-weight: 600;
+    width: fit-content;    /* Only as wide as the text inside */
+    display: inline-block; /* Ensures it doesn't try to fill a grid/flex row */
+    align-self: start;     /* Keeps it to the left if inside a grid/flex container */
+    margin-bottom: 10px;
+}
+
+.back-btn:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.weight-view h2 {
+    font-size: 1.5rem;
+    margin-top: 20px;
+    justify-content: center;
+}
+.weight-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 20px;
+    justify-content: space-evenly;
+    max-width: 500px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.weight-stats-row div {
+    flex: 1;
+    background: white;
+    border: 1px solid var(--color-bg-tertiary);
+    padding: 0px 8px 0px 8px;
+}
+
+.weight-stats-row small {
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
+
+.weight-stats-row strong {
+    font-size: 1.2rem;
+}
+
+.day-count {
+    font-size: 0.6rem;
+    color: var(--color-text-tertiary);
+    font-weight: normal;
+}
+
+.weight-log-row input {
+    padding: 8px;
+    font-size: 16px;
+    width: 200px;
+}
+
+.weight-log-row {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    align-items: center;
+}
+
+.weight-log-row button {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--color-primary);
+}
+
+.weight-log-row button:hover {
+    background: var(--color-primary-dark);
+    color: var(--color-text-inverse);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--color-primary);
+}
+
+
+.date-input, .weight-input {
+    padding: 8px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.weight-input {
+    width: 100px;
+}
+
+.weight-table {
+    display: flex;
+    flex-direction: column;;
+    width: fit-content;
+    margin-left: 0;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 16px;
+    background: white;
+    display: block;
+    padding: 20px;
+    border: 1px solid var(--color-bg-tertiary);
+}
+
+/* table header and table data*/
+.weight-table th, .weight-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-bg-tertiary);
+}
+
+/* Detailed weight grid */
+.weight-grid-expanded {
+    width: fit-content;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.weight-grid-expanded th, .weight-grid-expanded td {
+    border: 1px solid #e2e8f0;
+    padding: 8px 4px;
+}
+
+.sub-head {
+    font-size: 0.7rem;
+    background-color: #f8fafc;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+/* Column or Row label for the Week number */
+.week-label {
+    background-color: #f1f5f9;
+    font-weight: bold;
+}
+
+/* The actual weight value cell */
+.weight-cell {
+    font-weight: 600;
+    color: #1e293b;
+    min-width: 45px;
+}
+
+/* The cell showing +/- progress */
+.progress-cell {
+    font-size: 0.75rem;
+    background-color: #fbfcfe; /* Very slight tint to distinguish from weight */
+    min-width: 40px;
+    border-right: 2px solid #e2e8f0 !important; /* Thick line between days */
+}
+
+/* Color logic for progress */
+.progress-good { color: var(--color-success); font-weight: bold; }
+.progress-bad { color: var(--color-error); font-weight: bold; }
+
+.goal-progress-container {
+    margin: 10px 0 30px 0;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--color-info);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 10px;
+    background-color: #dbedff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--color-info); /* A nice blue, or use #059669 for green */
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+}
+
+.weight-tables {
+    display: flex;       /* Put children side-by-side */
+    flex-direction: column; /* Horizontal alignment */
+    flex-wrap: wrap;     /* If the screen is too small, the second table moves below */
+    gap: 30px;           /* Space between the two tables */
+    align-items: flex-start; /* Keeps both tables aligned at the top */
+    margin-top: 20px;
+}
+
+.table-section {
+    /* Prevents the tables from stretching unnecessarily */
+    flex: 0 1 auto;
+}
+
+.table-section h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: var(--color-text-secondary);
+}

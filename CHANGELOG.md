@@ -54,3 +54,9 @@ Track:
 - installed firebase
 - added .env file
 - update sleep.js to account for async firebase
+- deployed first time
+
+## 23-02-2026
+- added async weight functions in storage.js
+- fixing css and js
+- sudo npm install recharts

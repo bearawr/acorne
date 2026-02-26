@@ -1,15 +1,15 @@
 import React from 'react';
-import '../common/placeholder.css';
+import '../Overview/Overview.css';
 
-const Fitness = () => {
+const Overview = () => {
     return (
         <div className='placeholder-view fade-in'>
             <div className='placeholder-content'>
-                <h1>Fitness Tracking</h1>
+                <h1>Overview</h1>
                     <p>Feature coming soon.</p>
             </div>
         </div>
     );
 };
 
-export default Fitness;
+export default Overview;
