@@ -354,7 +354,7 @@
 }
 
 /* Mobile - SUltra23 */
-@media (max-width: 1440px) {
+@media (max-width: 768px) {
     .sleep-view { padding: 15px; }
     .view-header h1 { font-size: 22px; width: 100%; }
     .view-header { align-items: flex-start; }

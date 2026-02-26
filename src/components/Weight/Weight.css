@@ -1,15 +1,16 @@
 .weight-view {
     padding: 16px;
-    display: grid;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .weight-header {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
 .weight-header h1 {
@@ -19,12 +20,10 @@
 
 .weight-header button {
     background: var(--color-bg-secondary);
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     border: 1px solid var(--color-bg-tertiary);
     border-radius: 4px;
     padding: 6px 10px;
-    color: var(--color-text-secondary);
-    margin: 10px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
@@ -32,13 +31,11 @@
 
 .weight-header button:hover {
     background: white;
-    border: 1px solid var(--color-bg-tertiary);
-    cursor: pointer;
 }
 
 .goals-list {
     display: grid;
-    grid-template-columns: 1fr 1fr; /*fr -> fractional unit */
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
 
@@ -51,10 +48,10 @@
     cursor: pointer;
     border-radius: 4px;
     border: 1px solid var(--color-bg-tertiary);
+    box-sizing: border-box;
 }
 
 .goal-card:hover {
-    border: var(--color-accent);
     box-shadow: var(--shadow-sm);
 }
 
@@ -91,39 +88,26 @@
     color: var(--color-text-secondary);
 }
 
-.delete-btn:hover {
-    background: var(--color-error);
-    border: 1px solid var(--color-error);
-    color: var(--color-text-inverse);
-}
-
-.cancel-btn:hover {
-    background: var(--color-accent);
-}
-
-.save-btn:hover {
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-    border: 1px solid var(--color-primary);
-}
+.delete-btn:hover { background: var(--color-error); border-color: var(--color-error); color: var(--color-text-inverse); }
+.save-btn:hover { background: var(--color-primary); color: var(--color-text-inverse); border-color: var(--color-primary); }
 
 .edit-btn {
     align-self: flex-end;
     padding: 4px 12px;
     font-size: 0.75rem;
-    background: none;
     font-weight: 600;
     border: 1px solid var(--color-bg-tertiary);
     border-radius: 4px;
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
     width: 70px;
+    cursor: pointer;
 }
 
 .edit-btn:hover {
     background: var(--color-primary);
     color: var(--color-text-inverse);
-    border: 1px solid var(--color-primary);
+    border-color: var(--color-primary);
 }
 
 /* New Form */
@@ -132,30 +116,24 @@
     flex-direction: column;
     gap: 8px;
     padding: 15px;
-    max-width: 40vw;
+    width: 90vw;
+    max-width: 360px;
     background: white;
     z-index: 1000;
     position: absolute;
-    right: 50px;
+    right: 16px;
     border: 1px solid var(--color-bg-tertiary);
     border-radius: 2px;
     box-shadow: var(--shadow-lg);
+    box-sizing: border-box;
 }
 
 .new-goal-form input {
     padding: 4px;
     border: 1px solid var(--color-bg-tertiary);
     border-radius: 2px;
-}
-
-.new-goal-form button:hover {
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-    border: 1px solid var(--color-primary);
-}
-
-.input-group label {
-    margin-right: 5px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .input-group {
@@ -163,7 +141,11 @@
     font-weight: 600;
 }
 
-/* Weight Stats */
+.input-group label {
+    margin-right: 5px;
+}
+
+/* Back button */
 .back-btn {
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
@@ -172,10 +154,11 @@
     border-radius: 4px;
     padding: 4px 8px;
     font-weight: 600;
-    width: fit-content;    /* Only as wide as the text inside */
-    display: inline-block; /* Ensures it doesn't try to fill a grid/flex row */
-    align-self: start;     /* Keeps it to the left if inside a grid/flex container */
+    width: fit-content;
+    display: inline-block;
+    align-self: start;
     margin-bottom: 10px;
+    cursor: pointer;
 }
 
 .back-btn:hover {
@@ -183,152 +166,166 @@
 }
 
 .weight-view h2 {
-    font-size: 1.5rem;
-    margin-top: 20px;
-    justify-content: center;
+    font-size: 1.3rem;
+    margin-top: 16px;
 }
+
+/* Stats Row */
 .weight-stats-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 20px;
-    justify-content: space-evenly;
-    max-width: 500px;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    width: 100%;
 }
 
 .weight-stats-row div {
-    flex: 1;
     background: white;
     border: 1px solid var(--color-bg-tertiary);
-    padding: 0px 8px 0px 8px;
+    padding: 3px 6px;
+    box-sizing: border-box;
+    min-width: 0;
+    line-height: 1;
 }
 
 .weight-stats-row small {
     color: var(--color-text-secondary);
     text-transform: uppercase;
-    font-size: 0.7rem;
+    font-size: 0.55rem;
+    display: block;
+    line-height: 1.2;
+    margin-bottom: 1px;
 }
 
 .weight-stats-row strong {
-    font-size: 1.2rem;
+    font-size: 0.8rem;
+    word-break: break-all;
+    line-height: 1.2;
+    display: block;
 }
 
 .day-count {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     color: var(--color-text-tertiary);
     font-weight: normal;
+}
+
+/* Log Row */
+.weight-log-row {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .weight-log-row input {
     padding: 8px;
     font-size: 16px;
-    width: 200px;
-}
-
-.weight-log-row {
-    display: flex;
-    gap: 10px;
-    margin: 20px 0;
-    align-items: center;
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .weight-log-row button {
     background: var(--color-primary);
     color: var(--color-text-inverse);
-    padding: 8px;
+    padding: 8px 16px;
     border-radius: 4px;
     border: 1px solid var(--color-primary);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .weight-log-row button:hover {
     background: var(--color-primary-dark);
-    color: var(--color-text-inverse);
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid var(--color-primary);
 }
 
-
-.date-input, .weight-input {
-    padding: 8px;
-    border: 1px solid var(--color-bg-tertiary);
-    border-radius: 6px;
-    font-size: 14px;
+/* Tables */
+.weight-tables {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 20px;
+    width: 100%;
 }
 
-.weight-input {
-    width: 100px;
+.table-section {
+    width: 100%;
+    overflow-x: auto; /* allows horizontal scroll ONLY inside table containers */
+}
+
+.table-section h3 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: var(--color-text-secondary);
 }
 
 .weight-table {
-    display: flex;
-    flex-direction: column;;
-    width: fit-content;
-    margin-left: 0;
+    width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
-    margin-top: 16px;
+    font-size: 13px;
+    margin-top: 8px;
     background: white;
-    display: block;
-    padding: 20px;
+    padding: 12px;
     border: 1px solid var(--color-bg-tertiary);
+    box-sizing: border-box;
 }
 
-/* table header and table data*/
 .weight-table th, .weight-table td {
     padding: 6px 8px;
     text-align: left;
     border-bottom: 1px solid var(--color-bg-tertiary);
+    white-space: nowrap;
 }
 
-/* Detailed weight grid */
+/* Weight grid */
 .weight-grid-expanded {
-    width: fit-content;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     text-align: center;
+    width: 100%;
 }
 
 .weight-grid-expanded th, .weight-grid-expanded td {
     border: 1px solid #e2e8f0;
-    padding: 8px 4px;
+    padding: 6px 4px;
+    min-width: 36px;
 }
 
 .sub-head {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     background-color: #f8fafc;
     color: #94a3b8;
     text-transform: uppercase;
 }
 
-/* Column or Row label for the Week number */
 .week-label {
     background-color: #f1f5f9;
     font-weight: bold;
 }
 
-/* The actual weight value cell */
 .weight-cell {
     font-weight: 600;
     color: #1e293b;
-    min-width: 45px;
+    min-width: 36px;
 }
 
-/* The cell showing +/- progress */
 .progress-cell {
-    font-size: 0.75rem;
-    background-color: #fbfcfe; /* Very slight tint to distinguish from weight */
-    min-width: 40px;
-    border-right: 2px solid #e2e8f0 !important; /* Thick line between days */
+    font-size: 0.7rem;
+    background-color: #fbfcfe;
+    min-width: 32px;
+    border-right: 2px solid #e2e8f0 !important;
 }
 
-/* Color logic for progress */
 .progress-good { color: var(--color-success); font-weight: bold; }
 .progress-bad { color: var(--color-error); font-weight: bold; }
 
+/* Progress bar */
 .goal-progress-container {
-    margin: 10px 0 30px 0;
+    margin: 10px 0 24px 0;
 }
 
 .progress-label {
@@ -351,27 +348,42 @@
 
 .progress-bar-fill {
     height: 100%;
-    background-color: var(--color-info); /* A nice blue, or use #059669 for green */
+    background-color: var(--color-info);
     border-radius: 10px;
     transition: width 0.5s ease-in-out;
 }
 
-.weight-tables {
-    display: flex;       /* Put children side-by-side */
-    flex-direction: column; /* Horizontal alignment */
-    flex-wrap: wrap;     /* If the screen is too small, the second table moves below */
-    gap: 30px;           /* Space between the two tables */
-    align-items: flex-start; /* Keeps both tables aligned at the top */
-    margin-top: 20px;
+/* Chart container */
+.chart-container {
+    width: 100%;
+    overflow-x: auto;
 }
 
-.table-section {
-    /* Prevents the tables from stretching unnecessarily */
-    flex: 0 1 auto;
-}
+/* Mobile */
+@media (max-width: 768px) {
+    .goals-list {
+        grid-template-columns: 1fr;
+    }
 
-.table-section h3 {
-    font-size: 1rem;
-    margin-bottom: 12px;
-    color: var(--color-text-secondary);
+    .weight-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .new-goal-form {
+        right: 8px;
+        width: calc(100vw - 32px);
+    }
+
+    .weight-table th, .weight-table td {
+        font-size: 12px;
+        padding: 4px 6px;
+    }
+
+    .weight-log-row {
+        justify-content: space-between;
+    }
+
+    .weight-log-row input {
+        flex: 1;
+    }
 }
