@@ -258,10 +258,57 @@ export const storage = {
         }
     },
 
+    // ─── CHORES ───────────────────────────────────────────────
+
+    getChores: async () => {
+        try {
+            const ref = userCollection('chores');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) {
+            console.error('Error getting chores:', error);
+            return [];
+        }
+    },
+
+    addChore: async (chore) => {
+        try {
+            const ref = userCollection('chores');
+            const docRef = await addDoc(ref, chore);
+            return docRef.id;
+        } catch (error) {
+            console.error('Error adding chore:', error);
+            return null;
+        }
+    },
+
+    updateChore: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'chores', id);
+            await updateDoc(ref, updates);
+            return true;
+        } catch (error) {
+            console.error('Error updating chore:', error);
+            return false;
+        }
+    },
+
+    deleteChore: async (id) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'chores', id);
+            await deleteDoc(ref);
+            return true;
+        } catch (error) {
+            console.error('Error deleting chore:', error);
+            return false;
+        }
+    },
+
     // ─── PLACEHOLDERS (ready to fill in later) ───────────────
     getFitnessData: async () => [],
     getHobbiesData: async () => [],
-    getChoresData: async () => [],
     getOverviewData: async() => [],
 };
 
