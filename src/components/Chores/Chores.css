@@ -9,10 +9,60 @@
     margin-bottom: 16px;
 }
 
+.chores-header h1 {
+    font-size: 1.5rem;
+}
+
+/* Progress Bar */
+.clean-house-bar {
+    margin-bottom: 20px;
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+.clean-house-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #eee;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #22c55e;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+}
+
+.clean-house-complete {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 8px;
+}
+
+.reset-btn {
+    margin-top: 8px;
+    font-size: 12px;
+    padding: 4px 10px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: none;
+}
+
+/* Filters */
 .chores-filters {
     display: flex;
     gap: 8px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
 .chores-filters button {
@@ -28,11 +78,78 @@
     border-bottom: 2px solid black;
 }
 
+/* Chore Type Management */
+.chore-types-manager {
+    margin-bottom: 16px;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.chore-types-manager h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.chore-type-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.chore-type-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+}
+
+.chore-type-tag input {
+    border: none;
+    font-size: 12px;
+    width: 80px;
+    padding: 0;
+}
+
+.chore-type-tag button {
+    font-size: 11px;
+    padding: 0 4px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #999;
+}
+
+.add-type-row {
+    display: flex;
+    gap: 6px;
+}
+
+.add-type-row input {
+    padding: 4px 6px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    flex: 1;
+}
+
+.add-type-row button {
+    padding: 4px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: none;
+}
+
+/* Chore Form */
 .chore-form {
     border: 1px solid #ccc;
     padding: 12px;
     margin-bottom: 16px;
-    max-width: 400px;
+    max-width: 440px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -52,27 +169,68 @@
     gap: 4px;
 }
 
+.days-picker {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.days-picker button {
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: none;
+}
+
+.days-picker button.selected {
+    background: #1e293b;
+    color: white;
+    border-color: #1e293b;
+}
+
 .chore-form-actions {
     display: flex;
     gap: 8px;
 }
 
-.chore-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+/* Chore Group */
+.chore-group {
+    margin-bottom: 20px;
 }
 
+.chore-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+}
+
+.chore-group-header h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #666;
+    margin: 0;
+}
+
+/* Chore Card */
 .chore-card {
     border: 1px solid #ddd;
     padding: 10px;
+    margin-bottom: 6px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .chore-card.done {
-    opacity: 0.6;
+    opacity: 0.5;
+}
+
+.chore-card.not-today {
+    opacity: 0.4;
 }
 
 .chore-left {
@@ -107,6 +265,7 @@
 .chore-actions {
     display: flex;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .chore-actions button {
