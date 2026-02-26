@@ -25,6 +25,9 @@ function Weight() {
     const [logDate, setLogDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [editingGoalId, setEditingGoalId] = useState(null);
     const [editData, setEditData] = useState({});
+    const [editingEntry, setEditingEntry] = useState(null);
+    const [editEntryWeight, setEditEntryWeight] = useState('');
+    const [menuOpen, setMenuOpen] = useState(null);
 
     // ─── DATA LOADING ───────────────────────────────────────
     
@@ -608,12 +611,100 @@ function Weight() {
                         </tr>
                     </thead>
                     <tbody>
-                        {tableData.map(row => (
+                        {tableData.map((row) => (
                             <tr key={row.id}>
                                 <td>{format(getSafeDate(row.date), 'EEE, MMM dd')}</td>
-                                <td>{row.weight}kg</td>
+                                <td>
+                                    {editingEntry === row.id ? (
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            value={editEntryWeight}
+                                            onChange={(e) => setEditEntryWeight(e.target.value)}
+                                            style={{ width: '70px', padding: '2px 4px' }}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        `${row.weight}kg`
+                                    )}
+                                </td>
                                 <td className={colorClass(row.daily)}>{row.daily ?? '--'}</td>
                                 <td className={colorClass(row.weekly)}>{row.weekly ?? '--'}</td>
+
+                                {/* Clean Action Column with Menu */}
+                                <td style={{ position: 'relative', textAlign: 'center' }} onMouseLeave={() => setMenuOpen(null)}>
+                                    {editingEntry === row.id ? (
+                                        <div style={{ display: 'flex', gap: '4px' }}>
+                                            <button 
+                                                style={{ color: 'green', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                                                onClick={async () => {
+                                                    await storage.updateWeightEntry(selectedGoal.id, row.id, { weight: parseFloat(editEntryWeight) });
+                                                    const updated = await storage.getWeightEntries(selectedGoal.id);
+                                                    setEntries(updated.sort((a, b) => a.date.localeCompare(b.date)));
+                                                    setEditingEntry(null);
+                                                }}
+                                            >
+                                                ✓
+                                            </button>
+                                            <button 
+                                                style={{ border: 'none', background: 'none', cursor: 'pointer' }}
+                                                onClick={() => setEditingEntry(null)}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <button 
+                                                onClick={() => setMenuOpen(menuOpen === row.id ? null : row.id)}
+                                                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 8px' }}
+                                            >
+                                                ⋮
+                                            </button>
+
+                                            {menuOpen === row.id && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    right: '10px',
+                                                    top: '10px',
+                                                    zIndex: 100,
+                                                    background: 'white',
+                                                    border: '1px solid #eee',
+                                                    borderRadius: '6px',
+                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    minWidth: '100px',
+                                                    overflow: 'hidden'
+                                                }}>
+                                                    <button 
+                                                        style={{ padding: '10px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px' }}
+                                                        onClick={() => { 
+                                                            setEditingEntry(row.id); 
+                                                            setEditEntryWeight(row.weight); 
+                                                            setMenuOpen(null); 
+                                                        }}
+                                                    >
+                                                        Edit Entry
+                                                    </button>
+                                                    <button 
+                                                        style={{ padding: '10px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer', color: '#ff4d4f', fontSize: '14px', borderTop: '1px solid #f5f5f5' }}
+                                                        onClick={async () => {
+                                                            if (window.confirm('Delete this entry?')) {
+                                                                await storage.deleteWeightEntry(selectedGoal.id, row.id);
+                                                                const updated = await storage.getWeightEntries(selectedGoal.id);
+                                                                setEntries(updated.sort((a, b) => a.date.localeCompare(b.date)));
+                                                            }
+                                                            setMenuOpen(null);
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
