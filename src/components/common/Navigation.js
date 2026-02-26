@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Moon, Scale, Dumbbell, CheckSquare, BookOpen, Palette, Menu, X } from 'lucide-react';
+import { Moon, Scale, Dumbbell, CheckSquare, BookOpen, Palette, Menu, X, Shrub } from 'lucide-react';
 import './Navigation.css';
 
 const Navigation = ({ currentView, onViewChange }) => {
@@ -11,7 +11,8 @@ const Navigation = ({ currentView, onViewChange }) => {
     { id: 'fitness', label: 'Fitness', icon: Dumbbell },
     { id: 'chores', label: 'Chores', icon: CheckSquare },
     { id: 'school', label: 'School', icon: BookOpen },
-    { id: 'hobbies', label: 'Hobbies', icon: Palette }
+    { id: 'hobbies', label: 'Hobbies', icon: Palette },
+    { id: 'overview', label: 'Overview', icon: Shrub}
   ];
 
   const handleNavClick = (id) => {

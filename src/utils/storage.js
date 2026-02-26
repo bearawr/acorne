@@ -189,6 +189,7 @@ export const storage = {
     getSchoolData: async () => [],
     getHobbiesData: async () => [],
     getChoresData: async () => [],
+    getOverviewData: async() => [],
 };
 
 export default storage;

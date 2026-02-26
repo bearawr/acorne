@@ -310,8 +310,8 @@ function Weight() {
                 </header>
 
                 {isCreating && (
-                <div className="goal-card new-goal-form">
-                    <h3>Create New Goal</h3>
+                <div className="new-goal-form">
+                    <h3>Add New Goal</h3>
                     <input
                         placeholder="Goal Title (e.g. Summer Shred)" 
                         value={newGoal.title}
@@ -351,7 +351,7 @@ function Weight() {
                     </div>
                     <div className="edit-actions" style={{marginTop: '10px'}}>
                         <button className="cancel-btn" onClick={() => setIsCreating(false)}>Cancel</button>
-                        <button className="save-btn" onClick={handleCreateGoal}>Create Goal</button>
+                        <button className="save-btn" onClick={handleCreateGoal}>Add</button>
                     </div>
                 </div>
             )}
@@ -418,14 +418,14 @@ function Weight() {
 
     return (
         <div className="weight-view">
-            <button onClick={() => setView('goals')}>← Back</button>
+            <button className="back-btn" onClick={() => setView('goals')}>←</button>
             <h2>{selectedGoal.title}</h2>
 
             <div className="weight-stats-row">
                 <div>
                     <small>Total Lost</small><br/>
-                    <strong>{totalLost}kg</strong> 
-                    <span className="day-count"> (Day {daysSinceStart}/{totalGoalDays} days)</span>
+                    <strong>{totalLost}kg</strong>
+                    <span className="day-count">(Day {daysSinceStart}/{totalGoalDays} days)</span>
                 </div>
                 <div>
                     <small>Current</small><br/>
@@ -530,93 +530,96 @@ function Weight() {
                 </div>
             )}
 
-            <h3>Weekly Summary</h3>
-            <table className="weight-table weekly-summary">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Week</th>
-                        <th>Progress</th>
-                        <th>Weight</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {buildWeeklySummary().map((row, i) => (
-                        <tr key={i}>
-                            <td>{row.date}</td>
-                            <td>{row.label}</td>
-                            <td className={colorClass(row.progress)}>
-                                {row.progress !== null ? (row.progress > 0 ? `+${row.progress}` : row.progress) : '--'}
-                            </td>
-                            <td>{row.weight ? `${row.weight}kg` : '--'}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className='weight-tables'>
+                <h3>Weekly Comparison Grid</h3>
+                <div className="table-container" style={{ overflowX: 'auto' }}>
+                    <table className="weight-grid-expanded">
+                        <thead>
+                            <tr>
+                                <th rowSpan="2">Week</th>
+                                <th colSpan="2">Mon</th>
+                                <th colSpan="2">Tue</th>
+                                <th colSpan="2">Wed</th>
+                                <th colSpan="2">Thu</th>
+                                <th colSpan="2">Fri</th>
+                                <th colSpan="2">Sat</th>
+                                <th colSpan="2">Sun</th>
+                            </tr>
+                            <tr>
+                                {/* Sub-headers for Weight and Progress */}
+                                {[...Array(7)].map((_, i) => (
+                                    <React.Fragment key={i}>
+                                        <th className="sub-head">Kg</th>
+                                        <th className="sub-head">+/-</th>
+                                    </React.Fragment>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {buildGridData().map((row) => (
+                                <tr key={row.weekNum}>
+                                    <td className="week-label">W{row.weekNum}</td>
+                                    {row.days.map((day, i) => (
+                                        <React.Fragment key={i}>
+                                            <td className="weight-cell">{day.weight || '—'}</td>
+                                            <td className={`progress-cell ${colorClass(day.progress)}`}>
+                                                {day.progress !== null ? (day.progress > 0 ? `+${day.progress}` : day.progress) : '--'}
+                                            </td>
+                                        </React.Fragment>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-            <h3>Weekly Comparison Grid</h3>
-            <div className="table-container" style={{ overflowX: 'auto' }}>
-                <table className="weight-grid-expanded">
+                <h3>Weekly Summary</h3>
+                <table className="weight-table weekly-summary">
                     <thead>
                         <tr>
-                            <th rowSpan="2">Week</th>
-                            <th colSpan="2">Mon</th>
-                            <th colSpan="2">Tue</th>
-                            <th colSpan="2">Wed</th>
-                            <th colSpan="2">Thu</th>
-                            <th colSpan="2">Fri</th>
-                            <th colSpan="2">Sat</th>
-                            <th colSpan="2">Sun</th>
-                        </tr>
-                        <tr>
-                            {/* Sub-headers for Weight and Progress */}
-                            {[...Array(7)].map((_, i) => (
-                                <React.Fragment key={i}>
-                                    <th className="sub-head">Kg</th>
-                                    <th className="sub-head">+/-</th>
-                                </React.Fragment>
-                            ))}
+                            <th>Date</th>
+                            <th>Week</th>
+                            <th>Progress</th>
+                            <th>Weight</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {buildGridData().map((row) => (
-                            <tr key={row.weekNum}>
-                                <td className="week-label">W{row.weekNum}</td>
-                                {row.days.map((day, i) => (
-                                    <React.Fragment key={i}>
-                                        <td className="weight-cell">{day.weight || '—'}</td>
-                                        <td className={`progress-cell ${colorClass(day.progress)}`}>
-                                            {day.progress !== null ? (day.progress > 0 ? `+${day.progress}` : day.progress) : '--'}
-                                        </td>
-                                    </React.Fragment>
-                                ))}
+                        {buildWeeklySummary().map((row, i) => (
+                            <tr key={i}>
+                                <td>{row.date}</td>
+                                <td>{row.label}</td>
+                                <td className={colorClass(row.progress)}>
+                                    {row.progress !== null ? (row.progress > 0 ? `+${row.progress}` : row.progress) : '--'}
+                                </td>
+                                <td>{row.weight ? `${row.weight}kg` : '--'}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-            </div>
 
-            <h3>History</h3>
-            <table className="weight-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Weight</th>
-                        <th>Daily</th>
-                        <th>Weekly</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {tableData.map(row => (
-                        <tr key={row.id}>
-                            <td>{format(getSafeDate(row.date), 'EEE, MMM dd')}</td>
-                            <td>{row.weight}kg</td>
-                            <td className={colorClass(row.daily)}>{row.daily ?? '--'}</td>
-                            <td className={colorClass(row.weekly)}>{row.weekly ?? '--'}</td>
+                <h3>History</h3>
+                <table className="weight-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Weight</th>
+                            <th>Daily</th>
+                            <th>Weekly</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {tableData.map(row => (
+                            <tr key={row.id}>
+                                <td>{format(getSafeDate(row.date), 'EEE, MMM dd')}</td>
+                                <td>{row.weight}kg</td>
+                                <td className={colorClass(row.daily)}>{row.daily ?? '--'}</td>
+                                <td className={colorClass(row.weekly)}>{row.weekly ?? '--'}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+        
+            </div>
         </div>
     );
 }

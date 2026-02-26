@@ -10,6 +10,7 @@ import Hobbies from './components/Hobbies/Hobbies';
 import School from './components/School/School';
 import Chores from './components/Chores/Chores';
 import Weight from './components/Weight/Weight';
+import Overview from './components/Overview/Overview';
 
 function App() {
     const [currentView, setCurrentView] = useState('sleep');
@@ -51,6 +52,7 @@ function App() {
             case 'chores': return <Chores />;
             case 'school': return <School />;
             case 'hobbies': return <Hobbies />;
+            case 'overview': return <Overview />;
             default: return <Sleep />;
         }
     };

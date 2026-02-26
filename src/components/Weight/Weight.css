@@ -1,5 +1,6 @@
 .weight-view {
     padding: 16px;
+    display: grid;
 }
 
 .weight-header {
@@ -12,16 +13,17 @@
 }
 
 .weight-header h1 {
-    font-size: 25px;
+    font-size: 1.5rem;
+    color: var(--color-primary);
 }
 
 .weight-header button {
     background: var(--color-bg-secondary);
     color: var(--color-text);
-    border: 2px solid var(--color-bg-tertiary);
+    border: 1px solid var(--color-bg-tertiary);
     border-radius: 4px;
     padding: 6px 10px;
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     margin: 10px;
     cursor: pointer;
     font-size: 13px;
@@ -30,7 +32,7 @@
 
 .weight-header button:hover {
     background: white;
-    border: 2px solid var(--color-bg-tertiary);
+    border: 1px solid var(--color-bg-tertiary);
     cursor: pointer;
 }
 
@@ -111,27 +113,45 @@
     font-size: 0.75rem;
     background: none;
     font-weight: 600;
-    border: 2px solid var(--color-bg-tertiary);
+    border: 1px solid var(--color-bg-tertiary);
     border-radius: 4px;
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
+    width: 70px;
 }
 
 .edit-btn:hover {
     background: var(--color-primary);
     color: var(--color-text-inverse);
-    border: 2px solid var(--color-primary);
+    border: 1px solid var(--color-primary);
 }
 
 /* New Form */
 .new-goal-form {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     padding: 15px;
+    max-width: 40vw;
+    background: white;
+    z-index: 1000;
+    position: absolute;
+    right: 50px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
+    box-shadow: var(--shadow-lg);
 }
 
 .new-goal-form input {
     padding: 4px;
-    margin: 5px 0px 0px 5px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
+}
+
+.new-goal-form button:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-primary);
 }
 
 .input-group label {
@@ -144,22 +164,48 @@
 }
 
 /* Weight Stats */
+.back-btn {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-weight: 600;
+    width: fit-content;    /* Only as wide as the text inside */
+    display: inline-block; /* Ensures it doesn't try to fill a grid/flex row */
+    align-self: start;     /* Keeps it to the left if inside a grid/flex container */
+    margin-bottom: 10px;
+}
 
+.back-btn:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.weight-view h2 {
+    font-size: 1.5rem;
+    margin-top: 20px;
+    justify-content: center;
+}
 .weight-stats-row {
-    display: flex;
-    justify-content:间;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 20px;
-    padding: 15px 0;
-    border-bottom: 1px solid #eee;
+    justify-content: space-evenly;
+    max-width: 500px;
+    margin-top: 20px;
     margin-bottom: 20px;
 }
 
 .weight-stats-row div {
     flex: 1;
+    background: white;
+    border: 1px solid var(--color-bg-tertiary);
+    padding: 0px 8px 0px 8px;
 }
 
 .weight-stats-row small {
-    color: #666;
+    color: var(--color-text-secondary);
     text-transform: uppercase;
     font-size: 0.7rem;
 }
@@ -169,8 +215,8 @@
 }
 
 .day-count {
-    font-size: 0.8rem;
-    color: #94a3b8;
+    font-size: 0.6rem;
+    color: var(--color-text-tertiary);
     font-weight: normal;
 }
 
@@ -188,39 +234,57 @@
 }
 
 .weight-log-row button {
-    background: white;
-    padding: 10px;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    padding: 8px;
     border-radius: 4px;
-    border: 2px solid var(--color-bg-tertiary);
+    border: 1px solid var(--color-primary);
 }
+
+.weight-log-row button:hover {
+    background: var(--color-primary-dark);
+    color: var(--color-text-inverse);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--color-primary);
+}
+
 
 .date-input, .weight-input {
     padding: 8px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--color-bg-tertiary);
     border-radius: 6px;
     font-size: 14px;
 }
 
 .weight-input {
-    width: 120px;
+    width: 100px;
 }
 
 .weight-table {
-    width: 100%;
+    display: flex;
+    flex-direction: column;;
+    width: fit-content;
+    margin-left: 0;
     border-collapse: collapse;
     font-size: 14px;
     margin-top: 16px;
+    background: white;
+    display: block;
+    padding: 20px;
+    border: 1px solid var(--color-bg-tertiary);
 }
 
+/* table header and table data*/
 .weight-table th, .weight-table td {
     padding: 6px 8px;
     text-align: left;
     border-bottom: 1px solid var(--color-bg-tertiary);
 }
 
-
+/* Detailed weight grid */
 .weight-grid-expanded {
-    width: 100%;
+    width: fit-content;
     border-collapse: collapse;
     font-size: 0.85rem;
     text-align: center;
@@ -238,17 +302,20 @@
     text-transform: uppercase;
 }
 
+/* Column or Row label for the Week number */
 .week-label {
     background-color: #f1f5f9;
     font-weight: bold;
 }
 
+/* The actual weight value cell */
 .weight-cell {
     font-weight: 600;
     color: #1e293b;
     min-width: 45px;
 }
 
+/* The cell showing +/- progress */
 .progress-cell {
     font-size: 0.75rem;
     background-color: #fbfcfe; /* Very slight tint to distinguish from weight */
@@ -257,8 +324,8 @@
 }
 
 /* Color logic for progress */
-.progress-good { color: #059669; font-weight: bold; } /* Green */
-.progress-bad { color: #dc2626; font-weight: bold; }  /* Red */
+.progress-good { color: var(--color-success); font-weight: bold; }
+.progress-bad { color: var(--color-error); font-weight: bold; }
 
 .goal-progress-container {
     margin: 10px 0 30px 0;
@@ -268,7 +335,7 @@
     display: flex;
     justify-content: space-between;
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--color-info);
     margin-bottom: 6px;
     text-transform: uppercase;
     font-weight: 600;
@@ -277,14 +344,34 @@
 .progress-bar-bg {
     width: 100%;
     height: 10px;
-    background-color: #f1f5f9;
+    background-color: #dbedff;
     border-radius: 10px;
     overflow: hidden;
 }
 
 .progress-bar-fill {
     height: 100%;
-    background-color: #3b82f6; /* A nice blue, or use #059669 for green */
+    background-color: var(--color-info); /* A nice blue, or use #059669 for green */
     border-radius: 10px;
     transition: width 0.5s ease-in-out;
+}
+
+.weight-tables {
+    display: flex;       /* Put children side-by-side */
+    flex-direction: column; /* Horizontal alignment */
+    flex-wrap: wrap;     /* If the screen is too small, the second table moves below */
+    gap: 30px;           /* Space between the two tables */
+    align-items: flex-start; /* Keeps both tables aligned at the top */
+    margin-top: 20px;
+}
+
+.table-section {
+    /* Prevents the tables from stretching unnecessarily */
+    flex: 0 1 auto;
+}
+
+.table-section h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: var(--color-text-secondary);
 }
