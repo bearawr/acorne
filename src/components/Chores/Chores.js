@@ -254,7 +254,7 @@ function Chores() {
                             <strong>{format(parseISO(selectedDate), 'MMM d')}:</strong>
                             <div className="pill-container">
                                 {dayDetailMap[selectedDate]?.map((name, i) => (
-                                    <span key={i} className="task-pill">✨ {name}</span>
+                                    <span key={i} className="task-pill">{name}</span>
                                 )) || <span className="empty-text">No activity</span>}
                             </div>
                         </div>
@@ -331,7 +331,7 @@ function Chores() {
                 <h1>Chores</h1>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="view-toggle" onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}>
-                        {viewMode === 'list' ? '📅 Year Overview' : '📋 List View'}
+                        {viewMode === 'list' ? 'Year View' : 'List View'}
                     </button>
                     <button onClick={openNewForm}>+ New Chore</button>
                     <button onClick={() => setShowTypeManager(!showTypeManager)}>Types</button>
@@ -343,7 +343,7 @@ function Chores() {
                     {todayChores.length > 0 && (
                         <div className="clean-house-bar">
                             <div className="clean-house-label">
-                                <span>🏠 Today — {todayDone}/{todayChores.length} done</span>
+                                <span>Today — {todayDone}/{todayChores.length} done</span>
                                 <span>{progressPct}%</span>
                             </div>
                             <div className="progress-bar-bg">
