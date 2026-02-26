@@ -1,18 +1,100 @@
 .school-view {
+    display: flex;
+    flex-direction: column;
     padding: 16px;
+    gap: 16px;
+}
+
+.school-main {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+/* ── Daily Stats Sidebar ── */
+.school-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sidebar-card {
+    border: 1px solid #ddd;
+    padding: 12px;
+    background: white;
+}
+
+.sidebar-card h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.sidebar-date {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.sidebar-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.sidebar-progress-bg {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.sidebar-progress-fill {
+    height: 100%;
+    background: #22c55e;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.sidebar-completed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.sidebar-completed-item {
+    font-size: 12px;
+    color: #666;
+    text-decoration: line-through;
+    padding: 2px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* ── Main Content ── */
+.school-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .school-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .school-tabs {
     display: flex;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
 .school-tabs button {
@@ -20,6 +102,7 @@
     cursor: pointer;
     border: 1px solid #ccc;
     background: none;
+    font-size: 13px;
 }
 
 .school-tabs button.active {
@@ -30,7 +113,7 @@
 .status-filters {
     display: flex;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
 }
 
@@ -46,7 +129,7 @@
     font-weight: bold;
 }
 
-/* Task Form */
+/* ── Task Form ── */
 .task-form {
     border: 1px solid #ccc;
     padding: 12px;
@@ -55,6 +138,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    background: white;
 }
 
 .task-form input,
@@ -62,6 +146,7 @@
     padding: 6px;
     font-size: 14px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .task-form label {
@@ -74,6 +159,12 @@
 .form-row {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
+}
+
+.form-row label {
+    flex: 1;
+    min-width: 140px;
 }
 
 .form-actions {
@@ -81,25 +172,34 @@
     gap: 8px;
 }
 
-/* Subject Group */
+/* ── Subject Group ── */
 .subject-group {
     margin-bottom: 20px;
 }
 
-.subject-group h3 {
-    font-size: 14px;
-    text-transform: uppercase;
-    color: #666;
+.subject-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
     border-bottom: 1px solid #eee;
     padding-bottom: 4px;
-    margin-bottom: 8px;
 }
 
-/* Task Card */
+.subject-group-header h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #666;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* ── Task Card ── */
 .task-card {
     border: 1px solid #ddd;
     padding: 10px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    background: white;
 }
 
 .task-card-header {
@@ -125,11 +225,22 @@
     color: #666;
     margin-top: 4px;
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.task-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     flex-wrap: wrap;
 }
 
-.task-meta .deadline {
+.task-meta-row svg {
+    flex-shrink: 0;
+}
+
+.deadline-text {
     color: red;
 }
 
@@ -148,6 +259,7 @@
     gap: 6px;
     align-items: center;
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .task-actions select {
@@ -168,7 +280,7 @@
     border-color: black;
 }
 
-/* Subtasks */
+/* ── Subtasks ── */
 .subtasks-section {
     margin-top: 10px;
     padding-left: 12px;
@@ -181,6 +293,7 @@
     gap: 8px;
     margin-top: 6px;
     font-size: 13px;
+    flex-wrap: wrap;
 }
 
 .subtask-row.editing {
@@ -200,6 +313,7 @@
 .subtask-edit-form select {
     padding: 4px;
     font-size: 13px;
+    box-sizing: border-box;
 }
 
 .add-subtask-form {
@@ -214,9 +328,125 @@
 .add-subtask-form select {
     padding: 4px;
     font-size: 13px;
+    box-sizing: border-box;
 }
 
-/* Priorities Tab */
+/* ── Urgent Tab ── */
+.urgent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.urgent-section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #888;
+    padding: 8px 0 4px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 4px;
+}
+
+/* ── Calendar Tab ── */
+.calendar-view {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.calendar-month {
+    border: 1px solid #eee;
+    padding: 12px;
+}
+
+.calendar-month-title {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #444;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #eee;
+}
+
+.calendar-day {
+    margin-bottom: 12px;
+}
+
+.calendar-day-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 4px;
+    padding: 2px 6px;
+    background: #f8f8f8;
+    display: inline-block;
+}
+
+.calendar-day-label.today {
+    background: #1e293b;
+    color: white;
+}
+
+.calendar-task-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 8px;
+    border-left: 2px solid #ddd;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.calendar-task-item.deadline-item {
+    border-left-color: red;
+}
+
+.calendar-task-item.duedate-item {
+    border-left-color: #3b82f6;
+}
+
+.calendar-task-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.calendar-task-title {
+    font-weight: 600;
+}
+
+.calendar-task-title.done {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.calendar-task-meta {
+    font-size: 11px;
+    color: #888;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.calendar-subtask-list {
+    margin-top: 4px;
+    padding-left: 12px;
+    border-left: 1px solid #eee;
+}
+
+.calendar-subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+    padding: 2px 0;
+}
+
+/* ── Priorities Tab ── */
 .priorities-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -224,7 +454,7 @@
 }
 
 .priorities-column h2 {
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     color: #666;
     border-bottom: 1px solid #eee;
@@ -232,12 +462,26 @@
     margin-bottom: 8px;
 }
 
+/* ── Mobile ── */
 @media (max-width: 768px) {
+    .school-main {
+        flex-direction: column;
+    }
+
+    .school-sidebar {
+        width: 100%;
+    }
+
     .priorities-layout {
         grid-template-columns: 1fr;
     }
 
     .form-row {
         flex-direction: column;
+    }
+
+    .task-actions {
+        flex-direction: column;
+        align-items: flex-end;
     }
 }
