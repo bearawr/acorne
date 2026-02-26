@@ -1,0 +1,243 @@
+.school-view {
+    padding: 16px;
+}
+
+.school-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.school-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.school-tabs button {
+    padding: 6px 12px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: none;
+}
+
+.school-tabs button.active {
+    font-weight: bold;
+    border-bottom: 2px solid black;
+}
+
+.status-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.status-filters button {
+    padding: 4px 10px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: none;
+    font-size: 13px;
+}
+
+.status-filters button.active {
+    font-weight: bold;
+}
+
+/* Task Form */
+.task-form {
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin-bottom: 16px;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.task-form input,
+.task-form select {
+    padding: 6px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.task-form label {
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-row {
+    display: flex;
+    gap: 8px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Subject Group */
+.subject-group {
+    margin-bottom: 20px;
+}
+
+.subject-group h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #666;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+}
+
+/* Task Card */
+.task-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.task-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.task-title {
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.task-title.done {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.task-meta {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.task-meta .deadline {
+    color: red;
+}
+
+.countdown {
+    font-size: 11px;
+    color: #888;
+}
+
+.countdown.urgent {
+    color: red;
+    font-weight: bold;
+}
+
+.task-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.task-actions select {
+    font-size: 12px;
+    padding: 2px 4px;
+}
+
+.task-actions button {
+    font-size: 12px;
+    padding: 2px 6px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: none;
+}
+
+.pin-btn.pinned {
+    font-weight: bold;
+    border-color: black;
+}
+
+/* Subtasks */
+.subtasks-section {
+    margin-top: 10px;
+    padding-left: 12px;
+    border-left: 2px solid #eee;
+}
+
+.subtask-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.subtask-row.editing {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.subtask-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.subtask-edit-form input,
+.subtask-edit-form select {
+    padding: 4px;
+    font-size: 13px;
+}
+
+.add-subtask-form {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 400px;
+}
+
+.add-subtask-form input,
+.add-subtask-form select {
+    padding: 4px;
+    font-size: 13px;
+}
+
+/* Priorities Tab */
+.priorities-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.priorities-column h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #666;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    .priorities-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+}

@@ -6,6 +6,7 @@ import {
     addDoc,
     updateDoc,
     deleteDoc,
+    setDoc,
 } from 'firebase/firestore';
 
 // Helper to get the current user's ID
@@ -184,9 +185,81 @@ export const storage = {
 
     getWeightData: async () => [],
 
+    // ─── SCHOOL ───────────────────────────────────────────────
+
+    getSchoolTasks: async () => {
+        try {
+            const ref = userCollection('schoolTasks');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) {
+            console.error('Error getting school tasks:', error);
+            return [];
+        }
+    },
+
+    addSchoolTask: async (task) => {
+        try {
+            const ref = userCollection('schoolTasks');
+            const docRef = await addDoc(ref, task);
+            return docRef.id;
+        } catch (error) {
+            console.error('Error adding school task:', error);
+            return null;
+        }
+    },
+
+    updateSchoolTask: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'schoolTasks', id);
+            await updateDoc(ref, updates);
+            return true;
+        } catch (error) {
+            console.error('Error updating school task:', error);
+            return false;
+        }
+    },
+
+    deleteSchoolTask: async (id) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'schoolTasks', id);
+            await deleteDoc(ref);
+            return true;
+        } catch (error) {
+            console.error('Error deleting school task:', error);
+            return false;
+        }
+    },
+
+    getSubjectOrder: async () => {
+        try {
+            const uid = getUserId();
+            const ref = collection(db, 'users', uid, 'schoolMeta');
+            const snap = await getDocs(ref);
+            const found = snap.docs.find(d => d.id === 'subjectOrder');
+            return found ? found.data().order : [];
+        } catch (error) {
+            console.error('Error getting subject order:', error);
+            return [];
+        }
+    },
+    
+    saveSubjectOrder: async (order) => {
+        try {
+            const uid = getUserId();
+            const ref = doc(db, 'users', uid, 'schoolMeta', 'subjectOrder');
+            await setDoc(ref, { order });
+            return true;
+        } catch (error) {
+            console.error('Error saving subject order:', error);
+            return false;
+        }
+    },
+
     // ─── PLACEHOLDERS (ready to fill in later) ───────────────
     getFitnessData: async () => [],
-    getSchoolData: async () => [],
     getHobbiesData: async () => [],
     getChoresData: async () => [],
     getOverviewData: async() => [],
