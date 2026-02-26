@@ -13,7 +13,7 @@
 
 /* ── Daily Stats Sidebar ── */
 .school-sidebar {
-    width: 220px;
+    width: 180px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -24,6 +24,7 @@
     border: 1px solid #ddd;
     padding: 12px;
     background: white;
+    border-radius: 2px;
 }
 
 .sidebar-card h3 {
@@ -57,7 +58,7 @@
 
 .sidebar-progress-fill {
     height: 100%;
-    background: #22c55e;
+    background: var(--color-success);
     border-radius: 4px;
     transition: width 0.3s ease;
 }
@@ -90,6 +91,14 @@
     margin-bottom: 12px;
 }
 
+.school-header button {
+    background: white;
+    padding: 4px 12px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+    box-shadow: var(--shadow-sm);
+}
+
 .school-tabs {
     display: flex;
     gap: 8px;
@@ -101,19 +110,28 @@
     padding: 6px 12px;
     cursor: pointer;
     border: 1px solid #ccc;
-    background: none;
+    border-radius: 4px;
+    background: white;
     font-size: 13px;
+    font-weight: 600;
+}
+
+.school-tabs button:hover{
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
 }
 
 .school-tabs button.active {
     font-weight: bold;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
     border-bottom: 2px solid black;
 }
 
 .status-filters {
     display: flex;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 30px;
     flex-wrap: wrap;
 }
 
@@ -123,10 +141,16 @@
     border: 1px solid #ccc;
     background: none;
     font-size: 13px;
+    border-radius: 4px;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
 }
 
-.status-filters button.active {
+status-filters button:hover, .status-filters button.active {
     font-weight: bold;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
 }
 
 /* ── Task Form ── */
@@ -139,6 +163,8 @@
     flex-direction: column;
     gap: 8px;
     background: white;
+    border-radius: 4px;
+    box-shadow: var(--shadow-lg);
 }
 
 .task-form input,
@@ -154,6 +180,24 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+.task-form button {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+.task-form button:hover {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    box-shadow: var(--shadow-sm);
 }
 
 .form-row {
@@ -200,6 +244,7 @@
     padding: 10px;
     margin-bottom: 6px;
     background: white;
+    border-radius: 4px;
 }
 
 .task-card-header {
@@ -207,6 +252,20 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 8px;
+}
+
+.subject-group-header button {
+    background: var(--color-bg-secondary);
+    padding: 2px 8px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+}
+
+.subject-group-header button:hover {
+    background: var(--color-bg-tertiary);
+    padding: 2px 8px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
 }
 
 .task-title {
