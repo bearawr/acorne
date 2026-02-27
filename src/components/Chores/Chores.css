@@ -20,6 +20,7 @@
     color: var(--color-text-secondary);
     padding: 4px 6px;
     font-size: 12px;
+    cursor: pointer;
 }
 
 .chores-header button:hover {
@@ -41,7 +42,7 @@
     border-radius: 4px;
 }
 
-.clean-house-bar button:hover{
+.clean-house-bar button:hover {
     background: var(--color-primary);
     color: var(--color-text-inverse);
 }
@@ -66,12 +67,6 @@
     background: var(--color-info);
     border-radius: 6px;
     transition: width 0.4s ease;
-}
-
-.clean-house-complete {
-    text-align: center;
-    font-size: 1.2rem;
-    margin-top: 8px;
 }
 
 .reset-btn {
@@ -179,21 +174,17 @@
 
 /* Chore Form */
 .chore-form {
+    position: absolute;
+    top: 300px;
+    left: 90px;
+    transform: translateX(-15%);
     border: 1px solid var(--color-bg-tertiary);
     padding: 12px;
-    margin-bottom: 16px;
     max-width: 440px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     background: white;
-    
-    position: absolute;
-    top: 300px;
-    left: 90px;
-    transform: translateX(-15%);
-
-    margin: 20px auto;
     border-radius: 4px;
     box-shadow: var(--shadow-lg);
     animation: slideDown 0.2s ease-out;
@@ -201,14 +192,8 @@
 }
 
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .chore-form input,
@@ -256,6 +241,7 @@
     padding: 4px 6px;
     font-size: 14px;
     border-radius: 4px;
+    cursor: pointer;
 }
 
 .chore-form-actions button:hover {
@@ -300,10 +286,6 @@
     opacity: 0.5;
 }
 
-.chore-card.not-today {
-    opacity: 0.4;
-}
-
 .chore-left {
     display: flex;
     align-items: center;
@@ -315,10 +297,6 @@
     font-size: 14px;
 }
 
-.chore-name.done {
-    text-decoration: line-through;
-}
-
 .chore-meta {
     font-size: 12px;
     color: #666;
@@ -328,50 +306,91 @@
     margin-top: 2px;
 }
 
-.chore-meta .urgent {
-    color: red;
-    font-weight: bold;
+/* Ellipsis Menu */
+.chore-menu-container {
+    position: relative;
 }
 
-.chore-actions {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.chore-actions button {
-    font-size: 12px;
-    padding: 2px 8px;
+.ellipsis-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #57606a;
     cursor: pointer;
-    border: 1px solid var(--color-bg-tertiary);
-    background: var(--color-bg-secondary);
-    color: var(--color-text-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
 }
-.github-twist-container {
+
+.ellipsis-btn:hover {
+    background: #f6f8fa;
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(140, 149, 159, 0.2);
+    z-index: 100;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dropdown-menu button {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 13px;
+    cursor: pointer;
+    color: #24292f;
+}
+
+.dropdown-menu button:hover {
+    background: #f6f8fa;
+}
+
+.dropdown-menu button.delete-opt {
+    color: #cf222e;
+    border-top: 1px solid #f0f3f6;
+}
+
+/* Calendar / Year View */
+.eagle-eye-container {
     background: #fff;
-    padding: 20px;
+    padding: 16px;
     border: 1px solid #d0d7de;
     border-radius: 8px;
-    margin-bottom: 20px;
 }
 
-.calendar-months {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #57606a;
-    margin-bottom: 5px;
-    padding: 0 5px;
-}
-
-.heatmap-grid {
+.months-dashboard {
     display: grid;
-    grid-template-columns: repeat(53, 1fr);
-    grid-template-rows: repeat(7, 1fr);
-    grid-auto-flow: column; 
-    gap: 3px;
-    height: 95px; /* Fixed height for 7 rows */
-    overflow-x: auto;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.month-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.month-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #57606a;
+    text-transform: uppercase;
+}
+
+.month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
 }
 
 .heat-square {
@@ -385,28 +404,28 @@
 
 .heat-square:hover { outline: 2px solid var(--color-primary); }
 .heat-square.selected { outline: 2px solid var(--color-info); transform: scale(1.1); }
-
 .heat-square[data-level="1"] { background: #d9e99b; }
 .heat-square[data-level="2"] { background: #98c440; }
 .heat-square[data-level="3"] { background: #72a130; }
 .heat-square[data-level="4"] { background: #4a6e21; }
 
-.day-detail-panel {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
+.day-detail-panel-compact {
+    margin-top: 12px;
+    padding: 8px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    min-height: 36px;
 }
 
-.day-detail-panel h4 { font-size: 14px; margin-bottom: 10px; }
+.detail-content {
+    font-size: 13px;
+}
 
 .pill-container {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    background: white; 
-    padding: 4px 8px;
-    border: 1px solid var(--color-bg-tertiary);
-    border-radius: 2px;
+    margin-top: 6px;
 }
 
 .task-pill {
@@ -417,18 +436,29 @@
     font-size: 12px;
 }
 
+.empty-text {
+    font-size: 12px;
+    color: #999;
+}
+
+.empty-text-hint {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+}
+
+/* Stats */
 .stats-section {
-    margin-top: 25px;
-    padding-top: 20px;
+    margin-top: 20px;
+    padding-top: 16px;
     border-top: 1px solid #eee;
 }
 
 .stats-section h4 {
-    font-size: 14px;
+    font-size: 13px;
     color: #24292f;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .stats-table {
@@ -446,29 +476,14 @@
 }
 
 .stats-table td {
-    padding: 10px 8px;
+    padding: 8px;
     border-bottom: 1px solid #f0f3f6;
-    color: #24292f;
 }
 
 .stats-table tr:hover {
-    background-color: #f6f8fa;
+    background: #f6f8fa;
 }
 
 .stats-table strong {
-    color: #216e39; /* Success green */
-}
-
-.months-dashboard {
-    display: grid;
-    /* Adjusts columns automatically: 4 on desktop, 2 on small screens */
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.month-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 days a week */
-    gap: 1px;
+    color: #216e39;
 }

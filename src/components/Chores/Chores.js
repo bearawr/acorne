@@ -13,7 +13,7 @@ const emptyChore = {
     scheduledDays: [],
     done: false,
     lastCompleted: null,
-    completionHistory: [] // Track history for heatmap
+    completionHistory: []
 };
 
 // ─── HELPERS ───────────────────────────────────────────
@@ -21,7 +21,6 @@ const emptyChore = {
 const getYearDays = () => {
     const days = [];
     const start = new Date(new Date().getFullYear(), 0, 1);
-    // Fill 53 weeks worth of days to ensure a full grid
     for (let i = 0; i < 371; i++) {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
@@ -57,15 +56,13 @@ function Chores() {
     const [showTypeManager, setShowTypeManager] = useState(false);
     const [viewMode, setViewMode] = useState('list'); 
     const [selectedDate, setSelectedDate] = useState(null);
+    const [activeMenu, setActiveMenu] = useState(null); // Track open ellipsis menu
 
-    // Group the year's days by month
     const monthsData = MONTHS.map((monthName, monthIdx) => {
         const year = new Date().getFullYear();
         const daysInMonth = [];
-        // Loop through days 1 to 31
         for (let d = 1; d <= 31; d++) {
             const date = new Date(year, monthIdx, d);
-            // Ensure we don't bleed into the next month (e.g., Feb 30)
             if (date.getMonth() === monthIdx) {
                 daysInMonth.push(date.toISOString().split('T')[0]);
             }
@@ -86,6 +83,13 @@ function Chores() {
         load();
     }, []);
 
+    // Close menu when clicking outside
+    useEffect(() => {
+        const closeMenu = () => setActiveMenu(null);
+        window.addEventListener('click', closeMenu);
+        return () => window.removeEventListener('click', closeMenu);
+    }, []);
+
     // ─── COMPUTED DATA ─────────────────────────────────────
 
     const dayDetailMap = chores.reduce((acc, chore) => {
@@ -96,17 +100,13 @@ function Chores() {
         return acc;
     }, {});
 
-    const yearDays = getYearDays();
-
     // ─── HANDLERS ──────────────────────────────────────────
 
     const handleToggleDone = async (chore) => {
         const now = new Date().toISOString();
         const dateOnly = now.split('T')[0];
-        
         const history = chore.completionHistory || [];
         const isChecking = !chore.done;
-        
         const updatedHistory = isChecking 
             ? [...new Set([...history, dateOnly])] 
             : history.filter(d => d !== dateOnly);
@@ -117,13 +117,12 @@ function Chores() {
             lastCompleted: isChecking ? now : chore.lastCompleted,
             completionHistory: updatedHistory
         };
-        
         await storage.updateChore(chore.id, updated);
         setChores(chores.map(c => c.id === chore.id ? updated : c));
     };
 
     const handleSave = async () => {
-        if (!form.name) { alert('Name is required'); return; }
+        if (!form.name) return;
         if (editingChore) {
             await storage.updateChore(editingChore.id, form);
             setChores(chores.map(c => c.id === editingChore.id ? { ...form, id: editingChore.id } : c));
@@ -147,48 +146,30 @@ function Chores() {
         setChores(updated);
     };
 
-    // ─── STATISTICS CALCULATIONS ───────────────────────────
+    const handleDelete = async (id) => {
+        if (!window.confirm('Delete chore?')) return;
+        await storage.deleteChore(id);
+        setChores(chores.filter(c => c.id !== id));
+    };
 
-    const currentMonth = new Date().getMonth(); // 0-11
+    // Stats Logic
+    const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-
     const stats = choreTypes.map(type => {
         const choresInType = chores.filter(c => c.typeId === type.id);
-        
-        let yearlyCount = 0;
-        let monthlyCount = 0;
-
+        let yearlyCount = 0; let monthlyCount = 0;
         choresInType.forEach(chore => {
             (chore.completionHistory || []).forEach(dateStr => {
                 const date = new Date(dateStr);
                 if (date.getFullYear() === currentYear) {
                     yearlyCount++;
-                    if (date.getMonth() === currentMonth) {
-                        monthlyCount++;
-                    }
+                    if (date.getMonth() === currentMonth) monthlyCount++;
                 }
             });
         });
-
         return { name: type.name, monthlyCount, yearlyCount };
     });
 
-    // Calculate "Uncategorized" separately
-    const uncategorizedChores = chores.filter(c => !c.typeId);
-    let uncatYearly = 0;
-    let uncatMonthly = 0;
-    uncategorizedChores.forEach(c => {
-        (c.completionHistory || []).forEach(dateStr => {
-            const date = new Date(dateStr);
-            if (date.getFullYear() === currentYear) {
-                uncatYearly++;
-                if (date.getMonth() === currentMonth) uncatMonthly++;
-            }
-        });
-    });
-    if (uncatYearly > 0) stats.push({ name: 'Uncategorized', monthlyCount: uncatMonthly, yearlyCount: uncatYearly });
-
-    // (Generic handlers)
     const openNewForm = () => { setForm(emptyChore); setEditingChore(null); setShowForm(true); };
     const openEditForm = (chore) => { setForm({ ...chore }); setEditingChore(chore); setShowForm(true); };
     const closeForm = () => { setShowForm(false); setEditingChore(null); setForm(emptyChore); };
@@ -196,6 +177,7 @@ function Chores() {
         const days = form.scheduledDays.includes(day) ? form.scheduledDays.filter(d => d !== day) : [...form.scheduledDays, day];
         setForm({ ...form, scheduledDays: days });
     };
+
     const handleAddType = async () => {
         if (!newTypeName.trim()) return;
         const id = await storage.addChoreType(newTypeName.trim());
@@ -212,95 +194,65 @@ function Chores() {
         await storage.deleteChoreType(id);
         setChoreTypes(choreTypes.filter(t => t.id !== id));
     };
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete chore?')) return;
-        await storage.deleteChore(id);
-        setChores(chores.filter(c => c.id !== id));
-    };
 
-    // ─── RENDER CALENDAR ───────────────────────────────────
+    // ─── RENDERERS ─────────────────────────────────────────
 
-    const renderCalendar = () => {
-        // We must return the JSX inside the curly braces
-        return (
-            <div className="eagle-eye-container">
-                <div className="months-dashboard">
-                    {monthsData.map(month => (
-                        <div key={month.name} className="month-block">
-                            <span className="month-label">{month.name}</span>
-                            <div className="month-grid">
-                                {month.days.map(date => {
-                                    const tasksDone = dayDetailMap[date] || [];
-                                    const level = Math.min(tasksDone.length, 4);
-                                    return (
-                                        <button 
-                                            key={date} 
-                                            className={`heat-square ${selectedDate === date ? 'selected' : ''}`}
-                                            data-level={level}
-                                            onClick={() => setSelectedDate(date)}
-                                            title={`${date}: ${tasksDone.length} chores`}
-                                        />
-                                    );
-                                })}
-                            </div>
+    const renderCalendar = () => (
+        <div className="eagle-eye-container">
+            <div className="months-dashboard">
+                {monthsData.map(month => (
+                    <div key={month.name} className="month-block">
+                        <span className="month-label">{month.name}</span>
+                        <div className="month-grid">
+                            {month.days.map(date => {
+                                const tasksDone = dayDetailMap[date] || [];
+                                const level = Math.min(tasksDone.length, 4);
+                                return (
+                                    <button 
+                                        key={date} 
+                                        className={`heat-square ${selectedDate === date ? 'selected' : ''}`}
+                                        data-level={level}
+                                        onClick={() => setSelectedDate(date)}
+                                    />
+                                );
+                            })}
                         </div>
-                    ))}
-                </div>
-
-                {/* Selected Day Panel - Compact & Uniform */}
-                <div className="day-detail-panel-compact">
-                    {selectedDate ? (
-                        <div className="detail-content">
-                            <strong>{format(parseISO(selectedDate), 'MMM d')}:</strong>
-                            <div className="pill-container">
-                                {dayDetailMap[selectedDate]?.map((name, i) => (
-                                    <span key={i} className="task-pill">{name}</span>
-                                )) || <span className="empty-text">No activity</span>}
-                            </div>
-                        </div>
-                    ) : (
-                        <p className="empty-text-hint">Select a day to see completed tasks</p>
-                    )}
-                </div>
-
-                {/* Legend for context */}
-                <div className="calendar-footer-legend">
-                    <span>Less</span>
-                    <div className="heat-square" data-level="0"></div>
-                    <div className="heat-square" data-level="1"></div>
-                    <div className="heat-square" data-level="2"></div>
-                    <div className="heat-square" data-level="3"></div>
-                    <div className="heat-square" data-level="4"></div>
-                    <span>More</span>
-                </div>
-
-                {/* Statistics Table */}
-                <div className="stats-section">
-                    <h4>Type Statistics ({currentYear})</h4>
-                    <table className="stats-table">
-                        <thead>
-                            <tr>
-                                <th>Chore Type</th>
-                                <th>This Month ({MONTHS[currentMonth]})</th>
-                                <th>Year Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {stats.map(s => (
-                                <tr key={s.name}>
-                                    <td>{s.name}</td>
-                                    <td><strong>{s.monthlyCount}</strong></td>
-                                    <td><strong>{s.yearlyCount}</strong></td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                    </div>
+                ))}
             </div>
-        );
-    };
 
-    // ─── RENDER LIST ───────────────────────────────────────
+            <div className="day-detail-panel-compact">
+                {selectedDate ? (
+                    <div className="detail-content">
+                        <strong>{format(parseISO(selectedDate), 'MMM d')}:</strong>
+                        <div className="pill-container">
+                            {dayDetailMap[selectedDate]?.map((name, i) => (
+                                <span key={i} className="task-pill">✨ {name}</span>
+                            )) || <span className="empty-text">No activity</span>}
+                        </div>
+                    </div>
+                ) : <p className="empty-text-hint">Select a day for details</p>}
+            </div>
+
+            <div className="stats-section">
+                <h4>Type Statistics ({currentYear})</h4>
+                <table className="stats-table">
+                    <thead>
+                        <tr><th>Type</th><th>Month</th><th>Year</th></tr>
+                    </thead>
+                    <tbody>
+                        {stats.map(s => (
+                            <tr key={s.name}>
+                                <td>{s.name}</td>
+                                <td><strong>{s.monthlyCount}</strong></td>
+                                <td><strong>{s.yearlyCount}</strong></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
 
     const todayChores = chores.filter(isScheduledToday);
     const todayDone = todayChores.filter(c => c.done).length;
@@ -333,7 +285,7 @@ function Chores() {
                     <button className="view-toggle" onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}>
                         {viewMode === 'list' ? 'Year View' : 'List View'}
                     </button>
-                    <button onClick={openNewForm}>+ New Chore</button>
+                    <button onClick={openNewForm}>+ New</button>
                     <button onClick={() => setShowTypeManager(!showTypeManager)}>Types</button>
                 </div>
             </div>
@@ -373,9 +325,21 @@ function Chores() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="chore-actions">
-                                        <button onClick={() => openEditForm(chore)}>Edit</button>
-                                        <button onClick={() => handleDelete(chore.id)}>Delete</button>
+                                    
+                                    {/* ─── ELLIPSIS MENU ─── */}
+                                    <div className="chore-menu-container" onClick={(e) => e.stopPropagation()}>
+                                        <button 
+                                            className="ellipsis-btn" 
+                                            onClick={() => setActiveMenu(activeMenu === chore.id ? null : chore.id)}
+                                        >
+                                            ⋮
+                                        </button>
+                                        {activeMenu === chore.id && (
+                                            <div className="dropdown-menu">
+                                                <button onClick={() => { openEditForm(chore); setActiveMenu(null); }}>Edit</button>
+                                                <button onClick={() => { handleDelete(chore.id); setActiveMenu(null); }} className="delete-opt">Delete</button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
