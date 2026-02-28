@@ -6,13 +6,14 @@ import './Chores.css';
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const TODAY_LABEL = DAYS[new Date().getDay()];
+const VIEWS = ['Today', 'Daily', 'Weekly', 'Monthly', 'All'];
 
 const emptyChore = {
     name: '',
     typeId: '',
     scheduledDays: [],
-    repeating: false,      // NEW: false = one-time task for today, true = recurring
-    routine: 'Daily',      // only used when repeating = true
+    repeating: false,
+    routine: 'Daily',
     order: 1,
     done: false,
     lastCompleted: null,
@@ -30,17 +31,22 @@ const daysSince = (isoStr) => {
 };
 
 const isScheduledToday = (chore) => {
+    const today = new Date().toISOString().split('T')[0];
+
     if (!chore.repeating) {
-        // Non-repeating: show only if created today (not yet done) or done today
-        const today = new Date().toISOString().split('T')[0];
-        const createdToday = chore.createdDate === today;
-        const doneToday = chore.completionHistory?.includes(today);
-        return createdToday || doneToday;
+        // One-time task: show if created today or completed today
+        return chore.createdDate === today || chore.completionHistory?.includes(today);
     }
-    return chore.scheduledDays?.includes(TODAY_LABEL);
+
+    // Repeating task: show if today's day label is in scheduledDays
+    // e.g. a Weekly/Friday chore shows on every Friday, including today
+    if (chore.scheduledDays?.includes(TODAY_LABEL)) return true;
+
+    // Edge case: repeating chore with NO days selected — fall back to never show in Today
+    return false;
 };
 
-// ─── STOPWATCH COMPONENT ───────────────────────────────
+// ─── STOPWATCH ─────────────────────────────────────────
 
 function Stopwatch() {
     const [running, setRunning] = useState(false);
@@ -49,19 +55,14 @@ function Stopwatch() {
 
     useEffect(() => {
         if (running) {
-            intervalRef.current = setInterval(() => {
-                setElapsed(e => e + 1);
-            }, 1000);
+            intervalRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
         } else {
             clearInterval(intervalRef.current);
         }
         return () => clearInterval(intervalRef.current);
     }, [running]);
 
-    const reset = () => {
-        setRunning(false);
-        setElapsed(0);
-    };
+    const reset = () => { setRunning(false); setElapsed(0); };
 
     const h = Math.floor(elapsed / 3600);
     const m = Math.floor((elapsed % 3600) / 60);
@@ -96,16 +97,16 @@ function Chores() {
     const [showForm, setShowForm] = useState(false);
     const [editingChore, setEditingChore] = useState(null);
     const [form, setForm] = useState(emptyChore);
-    const [filterDone, setFilterDone] = useState('Today');
     const [newTypeName, setNewTypeName] = useState('');
     const [editingTypeId, setEditingTypeId] = useState(null);
     const [typeRenameInput, setTypeRenameInput] = useState('');
     const [showTypeManager, setShowTypeManager] = useState(false);
-    const [viewMode, setViewMode] = useState('list');
+    const [viewMode, setViewMode] = useState('list');      // 'list' | 'calendar'
+    const [dashView, setDashView] = useState('Today');     // 'Today' | 'Daily' | 'Weekly' | 'Monthly'
     const [selectedDate, setSelectedDate] = useState(null);
     const [activeMenu, setActiveMenu] = useState(null);
 
-    // ─── EFFECTS ──────────────────────────────────────────
+    // ─── LOAD ──────────────────────────────────────────────
 
     useEffect(() => {
         const load = async () => {
@@ -113,8 +114,24 @@ function Chores() {
                 storage.getChores(),
                 storage.getChoreTypes(),
             ]);
-            setChores(choreData);
-            setChoreTypes(typeData);
+    
+            // Sanitize: ensure no object bleeds into primitive fields
+            const cleanChores = choreData.map(c => ({
+                ...c,
+                typeId: typeof c.typeId === 'object' ? (c.typeId?.id ?? '') : (c.typeId ?? ''),
+                name: typeof c.name === 'object' ? '' : (c.name ?? ''),
+                scheduledDays: Array.isArray(c.scheduledDays) ? c.scheduledDays : [],
+                completionHistory: Array.isArray(c.completionHistory) ? c.completionHistory : [],
+            }));
+    
+            const cleanTypes = typeData.map(t => ({
+                ...t,
+                id: typeof t.id === 'object' ? JSON.stringify(t.id) : String(t.id ?? ''),
+                name: typeof t.name === 'object' ? '' : (t.name ?? ''),
+            }));
+    
+            setChores(cleanChores);
+            setChoreTypes(cleanTypes);
             setLoading(false);
         };
         load();
@@ -126,7 +143,7 @@ function Chores() {
         return () => window.removeEventListener('click', closeMenu);
     }, []);
 
-    // ─── COMPUTED DATA ─────────────────────────────────────
+    // ─── CALENDAR DATA ─────────────────────────────────────
 
     const monthsData = MONTHS.map((monthName, monthIdx) => {
         const year = new Date().getFullYear();
@@ -148,34 +165,52 @@ function Chores() {
         return acc;
     }, {});
 
-    // Filtering
-    const filteredChores = chores
-        .filter(c => {
-            if (filterDone === 'Pending') return !c.done;
-            if (filterDone === 'Done') return c.done;
-            if (filterDone === 'Today') return isScheduledToday(c);
-            return true;
-        })
-        .sort((a, b) => (a.order || 1) - (b.order || 1));
+    // ─── CHORES PER VIEW ───────────────────────────────────
 
-    // Group into "Today's Tasks" vs repeating routines
-    const todayOnceChores = filteredChores.filter(c => !c.repeating);
-    const repeatingChores = filteredChores.filter(c => c.repeating);
+    const getChoresForView = (view) => {
+        let filtered;
+        switch (view) {
+            case 'Today':   filtered = chores.filter(isScheduledToday); break;
+            case 'Daily':   filtered = chores.filter(c => c.repeating && c.routine === 'Daily'); break;
+            case 'Weekly':  filtered = chores.filter(c => c.repeating && c.routine === 'Weekly'); break;
+            case 'Monthly': filtered = chores.filter(c => c.repeating && c.routine === 'Monthly'); break;
+            case 'All':     filtered = chores; break;
+            default:        filtered = chores;
+        }
+        return filtered.sort((a, b) => (a.order || 1) - (b.order || 1));
+    };
+
+    const visibleChores = getChoresForView(dashView);
+
+    // Today sub-groups
+    const todayOnce      = dashView === 'Today' ? visibleChores.filter(c => !c.repeating) : [];
+    const todayRepeating = dashView === 'Today' ? visibleChores.filter(c => c.repeating)  : [];
+
+    // Progress bar always reflects today
+    const todayChores = chores.filter(isScheduledToday);
+    const todayDone   = todayChores.filter(c => c.done).length;
+    const progressPct = todayChores.length === 0 ? 0 : Math.round((todayDone / todayChores.length) * 100);
+
+    // Tab badge counts
+    const tabCounts = {
+        Today:   chores.filter(isScheduledToday).length,
+        Daily:   chores.filter(c => c.repeating && c.routine === 'Daily').length,
+        Weekly:  chores.filter(c => c.repeating && c.routine === 'Weekly').length,
+        Monthly: chores.filter(c => c.repeating && c.routine === 'Monthly').length,
+        All:     chores.length,
+    };
 
     // ─── ORDERING ──────────────────────────────────────────
 
     const moveChore = async (chore, direction, list) => {
-        const idx = list.findIndex(c => c.id === chore.id);
+        const idx     = list.findIndex(c => c.id === chore.id);
         const swapIdx = idx + direction;
         if (swapIdx < 0 || swapIdx >= list.length) return;
 
         const a = list[idx];
         const b = list[swapIdx];
-        const aOrder = a.order || idx + 1;
-        const bOrder = b.order || swapIdx + 1;
-
-        const updatedA = { ...a, order: bOrder };
-        const updatedB = { ...b, order: aOrder };
+        const updatedA = { ...a, order: b.order || swapIdx + 1 };
+        const updatedB = { ...b, order: a.order || idx + 1 };
 
         await Promise.all([
             storage.updateChore(a.id, updatedA),
@@ -192,9 +227,9 @@ function Chores() {
     // ─── HANDLERS ──────────────────────────────────────────
 
     const handleToggleDone = async (chore) => {
-        const now = new Date().toISOString();
-        const dateOnly = now.split('T')[0];
-        const history = chore.completionHistory || [];
+        const now       = new Date().toISOString();
+        const dateOnly  = now.split('T')[0];
+        const history   = chore.completionHistory || [];
         const isChecking = !chore.done;
         const updatedHistory = isChecking
             ? [...new Set([...history, dateOnly])]
@@ -248,14 +283,15 @@ function Chores() {
         setChores(updated);
     };
 
-    // Type manager handlers
     const handleAddType = async () => {
         if (!newTypeName.trim()) return;
-        const id = await storage.addChoreType({ name: newTypeName.trim() });
-        setChoreTypes([...choreTypes, { id, name: newTypeName.trim() }]);
+        const result = await storage.addChoreType({ name: newTypeName.trim() });
+        // Guard: some storage impls return the whole object, others return just the id
+        const id = typeof result === 'object' ? (result?.id ?? result) : result;
+        setChoreTypes([...choreTypes, { id: String(id), name: newTypeName.trim() }]);
         setNewTypeName('');
     };
-
+    
     const handleDeleteType = async (id) => {
         if (!window.confirm('Delete this type?')) return;
         await storage.deleteChoreType(id);
@@ -270,9 +306,29 @@ function Chores() {
         setTypeRenameInput('');
     };
 
-    const openNewForm = () => { setForm(emptyChore); setEditingChore(null); setShowForm(true); };
+    // Pre-fill form based on active tab so the new chore lands in the right place
+    const openNewForm = () => {
+        const presets = {
+            Today:   { repeating: false, routine: 'Daily' },
+            Daily:   { repeating: true,  routine: 'Daily' },
+            Weekly:  { repeating: true,  routine: 'Weekly' },
+            Monthly: { repeating: true,  routine: 'Monthly' },
+            All:     { repeating: false, routine: 'Daily' } // <--- Add this line!
+        };
+    
+        // Use the preset based on the current tab, or fall back to emptyChore
+        const activePreset = presets[dashView] || emptyChore;
+    
+        setForm({ 
+            ...emptyChore, 
+            ...activePreset 
+        });
+        
+        setEditingChore(null);
+        setShowForm(true);
+    };
     const openEditForm = (chore) => { setForm({ ...chore }); setEditingChore(chore); setShowForm(true); };
-    const closeForm = () => { setShowForm(false); setEditingChore(null); setForm(emptyChore); };
+    const closeForm    = () => { setShowForm(false); setEditingChore(null); setForm(emptyChore); };
 
     const toggleDay = (day) => {
         const days = form.scheduledDays.includes(day)
@@ -281,10 +337,47 @@ function Chores() {
         setForm({ ...form, scheduledDays: days });
     };
 
-    // ─── RENDER CALENDAR ───────────────────────────────────
+    // ─── CHORE CARD ────────────────────────────────────────
+
+    const renderChoreCard = (chore, list) => {
+        const idx = list.findIndex(c => c.id === chore.id);
+        return (
+            <div key={chore.id} className={`chore-card ${chore.done ? 'done' : ''}`}>
+                <div className="order-buttons">
+                    <button className="order-btn" onClick={() => moveChore(chore, -1, list)} disabled={idx === 0} title="Move up">▲</button>
+                    <button className="order-btn" onClick={() => moveChore(chore, 1, list)} disabled={idx === list.length - 1} title="Move down">▼</button>
+                </div>
+
+                <div className="chore-left">
+                    <input type="checkbox" checked={chore.done} onChange={() => handleToggleDone(chore)} />
+                    <div>
+                        <div className="chore-name">{chore.name}</div>
+                        <div className="chore-meta">
+                            {chore.lastCompleted && <span>Last: {daysSince(chore.lastCompleted)}</span>}
+                            {chore.repeating && chore.scheduledDays?.length > 0 && (
+                                <span className="chore-days">{chore.scheduledDays.join(' · ')}</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="chore-menu-container" onClick={(e) => e.stopPropagation()}>
+                    <button className="ellipsis-btn" onClick={() => setActiveMenu(activeMenu === chore.id ? null : chore.id)}>⋮</button>
+                    {activeMenu === chore.id && (
+                        <div className="dropdown-menu">
+                            <button onClick={() => openEditForm(chore)}>Edit</button>
+                            <button onClick={() => handleDelete(chore.id)} className="delete-opt">Delete</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // ─── CALENDAR RENDER ───────────────────────────────────
 
     const renderCalendar = () => {
-        const currentYear = new Date().getFullYear();
+        const currentYear  = new Date().getFullYear();
         const currentMonth = new Date().getMonth();
         const stats = choreTypes.map(type => {
             const choresInType = chores.filter(c => c.typeId === type.id);
@@ -359,63 +452,13 @@ function Chores() {
         );
     };
 
-    // ─── CHORE CARD ────────────────────────────────────────
-
-    const renderChoreCard = (chore, list) => {
-        const idx = list.findIndex(c => c.id === chore.id);
-        return (
-            <div key={chore.id} className={`chore-card ${chore.done ? 'done' : ''}`}>
-                <div className="order-buttons">
-                    <button
-                        className="order-btn"
-                        onClick={() => moveChore(chore, -1, list)}
-                        disabled={idx === 0}
-                        title="Move up"
-                    >▲</button>
-                    <button
-                        className="order-btn"
-                        onClick={() => moveChore(chore, 1, list)}
-                        disabled={idx === list.length - 1}
-                        title="Move down"
-                    >▼</button>
-                </div>
-
-                <div className="chore-left">
-                    <input type="checkbox" checked={chore.done} onChange={() => handleToggleDone(chore)} />
-                    <div>
-                        <div className="chore-name">{chore.name}</div>
-                        <div className="chore-meta">
-                            {chore.lastCompleted && <span>Last: {daysSince(chore.lastCompleted)}</span>}
-                            {chore.repeating && chore.scheduledDays?.length > 0 && (
-                                <span className="chore-days">{chore.scheduledDays.join(' · ')}</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="chore-menu-container" onClick={(e) => e.stopPropagation()}>
-                    <button className="ellipsis-btn" onClick={() => setActiveMenu(activeMenu === chore.id ? null : chore.id)}>⋮</button>
-                    {activeMenu === chore.id && (
-                        <div className="dropdown-menu">
-                            <button onClick={() => openEditForm(chore)}>Edit</button>
-                            <button onClick={() => handleDelete(chore.id)} className="delete-opt">Delete</button>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    };
-
     // ─── MAIN RENDER ───────────────────────────────────────
-
-    const todayChores = chores.filter(isScheduledToday);
-    const todayDone = todayChores.filter(c => c.done).length;
-    const progressPct = todayChores.length === 0 ? 0 : Math.round((todayDone / todayChores.length) * 100);
 
     if (loading) return <div className="loading">Loading...</div>;
 
     return (
         <div className="chores-view">
+            {/* HEADER */}
             <div className="chores-header">
                 <h1>Chores</h1>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -428,6 +471,7 @@ function Chores() {
 
             {viewMode === 'calendar' ? renderCalendar() : (
                 <>
+                    {/* PROGRESS BAR + STOPWATCH */}
                     {todayChores.length > 0 && (
                         <div className="clean-house-bar">
                             <div className="clean-house-progress">
@@ -444,36 +488,48 @@ function Chores() {
                         </div>
                     )}
 
-                    <div className="chores-filters">
-                        {['Today', 'All', 'Pending', 'Done'].map(f => (
-                            <button key={f} className={filterDone === f ? 'active' : ''} onClick={() => setFilterDone(f)}>{f}</button>
+                    {/* DASHBOARD TABS */}
+                    <div className="dash-tabs">
+                        {VIEWS.map(v => (
+                            <button
+                                key={v}
+                                className={`dash-tab ${dashView === v ? 'active' : ''}`}
+                                onClick={() => setDashView(v)}
+                            >
+                                {v}
+                                {tabCounts[v] > 0 && (
+                                    <span className="tab-badge">{tabCounts[v]}</span>
+                                )}
+                            </button>
                         ))}
                     </div>
 
-                    {/* TODAY'S TASKS (non-repeating) */}
-                    {todayOnceChores.length > 0 && (
-                        <div className="routine-group">
-                            <div className="routine-header"><h3>Today's Tasks</h3></div>
-                            {todayOnceChores.map(chore => renderChoreCard(chore, todayOnceChores))}
-                        </div>
-                    )}
-
-                    {/* REPEATING ROUTINES grouped by routine type */}
-                    {['Daily', 'Weekly', 'Monthly'].map(routineKey => {
-                        const routineChores = repeatingChores.filter(c => c.routine === routineKey);
-                        if (routineChores.length === 0) return null;
-                        return (
-                            <div key={routineKey} className="routine-group">
-                                <div className="routine-header"><h3>{routineKey} Routine</h3></div>
-                                {routineChores.map(chore => renderChoreCard(chore, routineChores))}
-                            </div>
-                        );
-                    })}
-
-                    {filteredChores.length === 0 && (
-                        <div className="empty-state">
-                            <p>No chores here yet!</p>
-                        </div>
+                    {/* TAB CONTENT */}
+                    {dashView === 'Today' ? (
+                        <>
+                            {todayOnce.length > 0 && (
+                                <div className="routine-group">
+                                    <div className="routine-header"><h3>One-time tasks</h3></div>
+                                    {todayOnce.map(chore => renderChoreCard(chore, todayOnce))}
+                                </div>
+                            )}
+                            {todayRepeating.length > 0 && (
+                                <div className="routine-group">
+                                    <div className="routine-header"><h3>Recurring</h3></div>
+                                    {todayRepeating.map(chore => renderChoreCard(chore, todayRepeating))}
+                                </div>
+                            )}
+                            {visibleChores.length === 0 && (
+                                <div className="empty-state"><p>Nothing scheduled for today 🎉</p></div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {visibleChores.length > 0
+                                ? visibleChores.map(chore => renderChoreCard(chore, visibleChores))
+                                : <div className="empty-state"><p>No {dashView.toLowerCase()} chores yet.</p></div>
+                            }
+                        </>
                     )}
                 </>
             )}
@@ -523,7 +579,6 @@ function Chores() {
                             autoFocus
                         />
 
-                        {/* Repeating toggle */}
                         <div className="repeat-toggle-row">
                             <span>Repeating task?</span>
                             <button
@@ -541,7 +596,6 @@ function Chores() {
                                     <option value="Weekly">Weekly</option>
                                     <option value="Monthly">Monthly</option>
                                 </select>
-
                                 <div className="days-picker">
                                     {DAYS.map(d => (
                                         <button
@@ -567,10 +621,8 @@ function Chores() {
                 </div>
             )}
 
-            {/* FLOATING ADD BUTTON */}
-            <button className="fab-add" onClick={openNewForm} title="Add new chore">
-                +
-            </button>
+            {/* FAB */}
+            <button className="fab-add" onClick={(e) => { e.stopPropagation(); openNewForm(); }} title="Add new chore">+</button>
         </div>
     );
 }

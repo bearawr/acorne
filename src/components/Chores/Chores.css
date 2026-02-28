@@ -27,8 +27,8 @@
 .chores-header button,
 .view-toggle {
     padding: 7px 14px;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
     background: #fff;
     cursor: pointer;
     font-size: 0.82rem;
@@ -39,22 +39,22 @@
 
 .chores-header button:hover,
 .view-toggle:hover {
-    background: #f0f0f0;
-    border-color: #bbb;
+    background: var(--color-bg-secondary);
+    border-color: var(--color-bg-secondary);
 }
 
 /* ─── PROGRESS BAR + STOPWATCH ───────────────────────── */
 
 .clean-house-bar {
     background: #fff;
-    border: 1.5px solid #e8e8e8;
-    border-radius: 14px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
     padding: 14px 16px;
     margin-bottom: 14px;
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-sm);
 }
 
 .clean-house-progress {
@@ -66,7 +66,7 @@
     display: flex;
     justify-content: space-between;
     font-size: 0.85rem;
-    color: #555;
+    color: var(--color-text);
     margin-bottom: 6px;
     font-weight: 500;
 }
@@ -81,23 +81,25 @@
 
 .progress-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4f8ef7, #7b61ff);
+    background: var(--color-success);
     border-radius: 99px;
     transition: width 0.4s ease;
 }
 
 .reset-btn {
-    background: none;
-    border: none;
-    color: #aaa;
+    background: var(--color-bg-secondary);
+    border: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
     font-size: 0.78rem;
     cursor: pointer;
-    padding: 0;
-    text-decoration: underline;
+    padding: 5px 8px;
+    border-radius: 4px;
+    display: flex;
+    margin-left: auto;
 }
 
 .reset-btn:hover {
-    color: #666;
+    background: var(--color-bg-tertiary);
 }
 
 /* ─── STOPWATCH ──────────────────────────────────────── */
@@ -108,9 +110,9 @@
     align-items: center;
     gap: 6px;
     padding: 10px 14px;
-    background: #f6f6ff;
-    border-radius: 12px;
-    border: 1.5px solid #e0dff8;
+    background: var(--color-primary);
+    border-radius: 2px;
+    border: 1.5px solid var(--color-primary);
     min-width: 100px;
     flex-shrink: 0;
 }
@@ -119,7 +121,7 @@
     font-size: 1.25rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: #3b2fc9;
+    color: white;
     letter-spacing: 1px;
     line-height: 1;
 }
@@ -133,7 +135,7 @@
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    border: 1.5px solid #ccc;
+    border: 1.5px solid var(--color-bg-tertiary);
     background: #fff;
     cursor: pointer;
     font-size: 0.9rem;
@@ -145,8 +147,8 @@
 }
 
 .stopwatch-btn.play {
-    border-color: #4f8ef7;
-    color: #4f8ef7;
+    border-color: var(--color-info);
+    color: var(--color-info);
 }
 
 .stopwatch-btn.pause {
@@ -159,7 +161,7 @@
 }
 
 .stopwatch-btn:hover {
-    background: #f0f0f0;
+    background: var(--color-bg-tertiary);
 }
 
 /* ─── FILTERS ─────────────────────────────────────────── */
@@ -173,9 +175,9 @@
 
 .chores-filters button {
     padding: 6px 14px;
-    border: 1.5px solid #ddd;
-    border-radius: 99px;
-    background: #fff;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 4px;
+    background: white;
     font-size: 0.82rem;
     cursor: pointer;
     color: #666;
@@ -184,14 +186,14 @@
 }
 
 .chores-filters button.active {
-    background: #3b2fc9;
-    border-color: #3b2fc9;
-    color: #fff;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
 }
 
 .chores-filters button:hover:not(.active) {
-    background: #f5f5f5;
-    border-color: #bbb;
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-bg-tertiary);
 }
 
 /* ─── ROUTINE GROUP ──────────────────────────────────── */
@@ -222,7 +224,7 @@
     gap: 8px;
     background: #fff;
     border: 1.5px solid #ebebeb;
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 12px 12px;
     margin-bottom: 8px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.04);
@@ -245,7 +247,7 @@
 .chore-left input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #3b2fc9;
+    accent-color: var(--color-success);
     flex-shrink: 0;
     cursor: pointer;
 }
@@ -289,7 +291,7 @@
     width: 22px;
     height: 20px;
     border: 1px solid #e0e0e0;
-    border-radius: 5px;
+    border-radius: 4px;
     background: #f8f8f8;
     color: #aaa;
     font-size: 0.6rem;
@@ -303,9 +305,9 @@
 }
 
 .order-btn:hover:not(:disabled) {
-    background: #3b2fc9;
+    background: var(--color-primary);
     color: #fff;
-    border-color: #3b2fc9;
+    border-color: var(--color-primary);
 }
 
 .order-btn:disabled {
@@ -327,7 +329,7 @@
     color: #ccc;
     cursor: pointer;
     padding: 4px 6px;
-    border-radius: 6px;
+    border-radius: 4px;
     line-height: 1;
     transition: background 0.15s, color 0.15s;
 }
@@ -343,7 +345,7 @@
     top: calc(100% + 4px);
     background: #fff;
     border: 1.5px solid #e8e8e8;
-    border-radius: 10px;
+    border-radius: 4px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.12);
     z-index: 100;
     overflow: hidden;
@@ -380,13 +382,13 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3b2fc9, #7b61ff);
+    background: var(--color-primary);
     color: #fff;
     border: none;
     font-size: 1.8rem;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 4px 18px rgba(59, 47, 201, 0.45);
+    box-shadow: var(--shadow-lg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -418,7 +420,7 @@
 
 .chore-form {
     background: #fff;
-    border-radius: 20px 20px 0 0;
+    border-radius: 4px;
     padding: 24px 20px 32px;
     width: 100%;
     max-width: 640px;
@@ -432,14 +434,14 @@
     font-size: 1.1rem;
     font-weight: 700;
     margin: 0 0 4px;
-    color: #1a1a2e;
+    color: var(--color-text);
 }
 
 .chore-form input,
 .chore-form select {
     padding: 10px 12px;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 10px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: 2px;
     font-size: 0.92rem;
     outline: none;
     transition: border-color 0.15s;
@@ -448,7 +450,7 @@
 
 .chore-form input:focus,
 .chore-form select:focus {
-    border-color: #7b61ff;
+    border-color: var(--color-bg-tertiary);
     background: #fff;
 }
 
@@ -464,7 +466,7 @@
 
 .toggle-btn {
     padding: 6px 14px;
-    border-radius: 99px;
+    border-radius: 4px;
     border: 1.5px solid #ddd;
     background: #f5f5f5;
     font-size: 0.82rem;
@@ -475,8 +477,8 @@
 }
 
 .toggle-btn.on {
-    background: #3b2fc9;
-    border-color: #3b2fc9;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
     color: #fff;
 }
 
@@ -490,7 +492,7 @@
 
 .days-picker button {
     padding: 6px 8px;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1.5px solid #ddd;
     background: #fff;
     font-size: 0.78rem;
@@ -502,8 +504,8 @@
 }
 
 .days-picker button.selected {
-    background: #3b2fc9;
-    border-color: #3b2fc9;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
     color: #fff;
 }
 
@@ -518,7 +520,7 @@
 .chore-form-actions button {
     flex: 1;
     padding: 11px;
-    border-radius: 10px;
+    border-radius: 4px;
     border: 1.5px solid #ddd;
     background: #f5f5f5;
     font-size: 0.9rem;
@@ -529,7 +531,7 @@
 }
 
 .chore-form-actions button.save-btn {
-    background: linear-gradient(135deg, #3b2fc9, #7b61ff);
+    background: var(--color-primary);
     border-color: transparent;
     color: #fff;
 }
@@ -547,7 +549,7 @@
 .type-manager {
     background: #fff;
     border: 1.5px solid #e8e8e8;
-    border-radius: 14px;
+    border-radius: 4px;
     padding: 16px;
     margin-bottom: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -570,16 +572,16 @@
     flex: 1;
     padding: 8px 10px;
     border: 1.5px solid #ddd;
-    border-radius: 8px;
+    border-radius: 2px;
     font-size: 0.88rem;
 }
 
 .type-add-row button {
     padding: 8px 14px;
     border: none;
-    background: #3b2fc9;
+    background: var(--color-primary);
     color: #fff;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -602,7 +604,7 @@
 .type-row button {
     padding: 4px 10px;
     border: 1.5px solid #ddd;
-    border-radius: 6px;
+    border-radius: 4px;
     background: #fff;
     font-size: 0.78rem;
     cursor: pointer;
@@ -651,7 +653,7 @@
 .month-block {
     background: #fff;
     border: 1.5px solid #ebebeb;
-    border-radius: 12px;
+    border-radius: 2px;
     padding: 10px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
@@ -689,15 +691,15 @@
     outline: 1.5px solid #3b2fc9;
 }
 
-.heat-square[data-level="1"] { background: #c7d7f8; }
-.heat-square[data-level="2"] { background: #7b9ef0; }
-.heat-square[data-level="3"] { background: #4f6ee8; }
-.heat-square[data-level="4"] { background: #3b2fc9; }
+.heat-square[data-level="1"] { background: #dff8c7; }
+.heat-square[data-level="2"] { background: #d7f07b; }
+.heat-square[data-level="3"] { background: #bde84f; }
+.heat-square[data-level="4"] { background: #afc92f; }
 
 .day-detail-panel-compact {
     background: #fff;
     border: 1.5px solid #ebebeb;
-    border-radius: 12px;
+    border-radius: 2px;
     padding: 12px 16px;
     min-height: 52px;
     display: flex;
@@ -710,7 +712,7 @@
     gap: 10px;
     flex-wrap: wrap;
     font-size: 0.88rem;
-    color: #444;
+    color: var(--color-text);
 }
 
 .pill-container {
@@ -721,8 +723,8 @@
 
 .task-pill {
     background: #ede9ff;
-    color: #3b2fc9;
-    border-radius: 99px;
+    color: var(--color-primary);
+    border-radius: 2px;
     padding: 3px 10px;
     font-size: 0.78rem;
     font-weight: 600;
@@ -742,7 +744,7 @@
 .stats-section {
     background: #fff;
     border: 1.5px solid #ebebeb;
-    border-radius: 12px;
+    border-radius: 2px;
     padding: 14px 16px;
 }
 
@@ -779,5 +781,65 @@
 }
 
 .stats-table td strong {
-    color: #3b2fc9;
+    color: var(--color-primary);
+}
+
+/* ─── DASHBOARD TABS ─────────────────────────────────── */
+
+.dash-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    background: #f2eeea;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.dash-tab {
+    flex: 1;
+    padding: 8px 6px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.dash-tab.active {
+    background: #fff;
+    color: var(--color-primary);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.10);
+}
+
+.dash-tab:hover:not(.active) {
+    color: #555;
+    background: rgba(255,255,255,0.5);
+}
+
+.tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 99px;
+    background: #e9e2dc;
+    color: var(--color-primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.dash-tab.active .tab-badge {
+    background: var(--color-primary);
+    color: #fff;
 }
