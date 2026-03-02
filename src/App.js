@@ -19,6 +19,7 @@ function App() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -89,13 +90,35 @@ function App() {
 
     return (
         <div className="app">
+            {/* Header Button */}
+            <header className="app-header">
+                <button 
+                    className="header-logo-btn" 
+                    onClick={() => setShowModal(!showModal)}
+                >
+                    Acorne
+                </button>
+            </header>
+
+            {/* Floating Modal Overlay */}
+            {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <p>Signed in as: <strong>{user.email}</strong></p>
+                        <button onClick={handleLogout} className="modal-logout-btn">
+                            Sign out
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <Navigation currentView={currentView} onViewChange={setCurrentView} />
             <main className="main-content">
                 {renderView()}
             </main>
-            <button onClick={handleLogout} className="logout-button">
+            {/* <button onClick={handleLogout} className="logout-button">
                 Sign out
-            </button>
+            </button> */}
         </div>
     );
 }
