@@ -19,9 +19,9 @@
     background: var(--color-surface);
     border-radius: 0px;
     box-shadow: var(--shadow-lg);
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
+    max-width: 300px;
+    width: 70%;
+    max-height: 60vh;
     overflow-y: auto;
     animation: slideInRight var(--transition-base);
 }

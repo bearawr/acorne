@@ -457,7 +457,7 @@ function Chores() {
     if (loading) return <div className="loading">Loading...</div>;
 
     return (
-        <div className="chores-view">
+        <div className="chores-view module-chores">
             {/* HEADER */}
             <div className="chores-header">
                 <h1>Chores</h1>

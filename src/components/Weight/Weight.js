@@ -420,7 +420,7 @@ function Weight() {
         : 0;
 
     return (
-        <div className="weight-view">
+        <div className="weight-view module-weight">
             <button className="back-btn" onClick={() => setView('goals')}>←</button>
             <h2>{selectedGoal.title}</h2>
 

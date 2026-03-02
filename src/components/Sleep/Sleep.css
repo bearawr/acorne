@@ -157,7 +157,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.calendar-day.today { border: 2px solid orange; }
+.calendar-day.today { border: 2px solid var(--color-primary-light); }
 .calendar-day.today .day-number { font-weight: 700; }
 /* .calendar-day.has-data { background: #f5f3f0} */
 

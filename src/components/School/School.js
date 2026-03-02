@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { storage } from '../../utils/storage';
 import { format, parseISO, isToday, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, getDay } from 'date-fns';
-import { Target, Crosshair } from 'lucide-react';
+import { 
+    Target, Crosshair, MoreVertical, Pin, PinOff,
+    Pencil, Trash2, X, ChevronUp, ChevronDown, CheckCircle2, Plus
+} from 'lucide-react';
 import './School.css';
 
 const PRIORITIES = ['P1', 'P2', 'P3', 'None'];
@@ -18,11 +21,11 @@ const emptyTask = {
     title: '', subject: '', dueDate: '', deadline: '',
     priority: 'P2', status: 'Not Started', subtasks: [], pinned: false,
 };
-const emptySubtask = { title: '', dueDate: '', deadline: '', priority: 'P2' };
+const emptySubtask = { title: '', dueDate: '', deadline: '', priority: 'P2', status: 'Not Started' };
 
 // ─── HELPERS ───────────────────────────────────────────
 
-const fmt  = (d) => { try { return format(parseISO(d), "EEE, MMM d · h:mm a"); } catch { return d; } };
+const fmt  = (d) => { try { return format(parseISO(d), "MMM d · h:mm a"); } catch { return d; } };
 const fmtS = (d) => { try { return format(parseISO(d), "MMM d"); } catch { return d; } };
 
 const countdown = (dateStr) => {
@@ -70,8 +73,11 @@ function School() {
     const [subjectRenameInput, setSubjectRenameInput] = useState('');
     const [activeMenu, setActiveMenu]           = useState(null);
     const [completedResetDate, setCompletedResetDate] = useState(getTodayStr());
-    const [calModal, setCalModal]               = useState(null); // { task, type, dateStr }
-
+    const [calModal, setCalModal]               = useState(null);
+    const [calMenuOpen, setCalMenuOpen]         = useState(false);
+    const [hideDone, setHideDone]               = useState(false);
+    const [focusSubject, setFocusSubject]       = useState(null); // for subject nav click
+    const [showSubtaskInput, setShowSubtaskInput] = useState(null); // holds task.id
 
     useEffect(() => {
         const id = setInterval(() => {
@@ -90,20 +96,18 @@ function School() {
     useEffect(() => {
         const load = async () => {
             const [data, order] = await Promise.all([storage.getSchoolTasks(), storage.getSubjectOrder()]);
-            // Backfill completedDate for Done tasks that don't have it
-        const today = new Date().toISOString();
-        const migrated = await Promise.all(data.map(async t => {
-            if (t.status === 'Done' && !t.completedDate) {
-                const updated = { ...t, completedDate: today };
-                await storage.updateSchoolTask(t.id, updated);
-                return updated;
-            }
-            return t;
-        }));
-
-        setTasks(migrated);
-        setSubjectOrder(order);
-        setLoading(false);
+            const today = new Date().toISOString();
+            const migrated = await Promise.all(data.map(async t => {
+                if (t.status === 'Done' && !t.completedDate) {
+                    const updated = { ...t, completedDate: today };
+                    await storage.updateSchoolTask(t.id, updated);
+                    return updated;
+                }
+                return t;
+            }));
+            setTasks(migrated);
+            setSubjectOrder(order);
+            setLoading(false);
         };
         load();
     }, []);
@@ -112,29 +116,48 @@ function School() {
     const today    = new Date();
     const todayStr = format(today, 'yyyy-MM-dd');
 
-    const filteredTasks    = tasks.filter(t => filterStatus === 'All' || t.status === filterStatus);
+    // Global filter applied across ALL tabs
+    const applyFilters = (taskList) => taskList.filter(t =>
+        (filterStatus === 'All' || t.status === filterStatus) &&
+        (!hideDone || t.status !== 'Done')
+    );
+
+    const filteredTasks    = applyFilters(tasks);
     const pinnedTasks      = sortTasks(tasks.filter(t => t.pinned)).slice(0, 3);
-    const unpinnedTasks    = sortTasks(filteredTasks.filter(t => !t.pinned));
+    const unpinnedTasks    = sortTasks(applyFilters(tasks.filter(t => !t.pinned)));
     const tasksDueToday    = tasks.filter(t => (t.dueDate?.startsWith(todayStr)) || (t.deadline?.startsWith(todayStr)));
     const doneTodayCount   = tasksDueToday.filter(t => t.status === 'Done').length;
     const progressPct      = tasksDueToday.length === 0 ? 0 : Math.round((doneTodayCount / tasksDueToday.length) * 100);
-    const completedToday = tasks.filter(t =>
-        t.status === 'Done' &&
-        t.completedDate?.startsWith(getTodayStr())
-    );
+    // const completedToday   = tasks.filter(t =>
+    //     t.status === 'Done' && t.completedDate?.startsWith(getTodayStr())
+    // );
 
-    console.log('getTodayStr:', getTodayStr());
-    console.log('completedToday:', completedToday);
-    console.log('all done tasks:', tasks.filter(t => t.status === 'Done').map(t => ({ title: t.title, completedDate: t.completedDate })));
-    console.log('all tasks statuses:', tasks.map(t => ({ title: t.title, status: t.status, completedDate: t.completedDate })));
+    const completedToday = [
+        ...tasks.filter(t => t.status === 'Done' && t.completedDate?.startsWith(getTodayStr()))
+            .map(t => ({ ...t, isSubtask: false })),
+        ...tasks.flatMap(t =>
+            (t.subtasks || [])
+                .filter(s => s.status === 'Done' && s.completedDate?.startsWith(getTodayStr()))
+                .map(s => ({ ...s, isSubtask: true, parentTitle: t.title }))
+        )
+    ];
 
-    const allSubjects      = [...new Set(tasks.map(t => t.subject).filter(Boolean))];
+    const allSubjects = [...new Set(tasks.map(t => t.subject).filter(Boolean))];
 
     const getOrderedSubjects = () => {
         const ordered   = subjectOrder.filter(s => allSubjects.includes(s));
         const remaining = allSubjects.filter(s => !ordered.includes(s));
         return [...ordered, ...remaining];
     };
+
+    // Subject navigator data: undone count per subject
+    const subjectNavData = getOrderedSubjects().map(subject => {
+        const undone = tasks.filter(t =>
+            (t.subject || 'No Subject') === subject && t.status !== 'Done'
+        ).length;
+        const total = tasks.filter(t => (t.subject || 'No Subject') === subject).length;
+        return { subject, undone, total };
+    });
 
     const months = [];
     let cur = startOfMonth(today);
@@ -191,13 +214,9 @@ function School() {
     };
 
     const handleStatusChange = async (task, newStatus) => {
-        const completedDate = newStatus === 'Done'
-        ? getTodayStr()   // ← store just the local date string, not ISO UTC
-        : (task.completedDate || null);
-        const updated = { ...task, status: newStatus, completedDate };
-
-        console.log('handleStatusChange fired:', newStatus, completedDate); // ← add this
-
+        const completedDate = newStatus === 'Done' ? getTodayStr() : (task.completedDate || null);
+        const priority = newStatus === 'Done' ? 'None' : task.priority;
+        const updated = { ...task, status: newStatus, completedDate, priority };
         await storage.updateSchoolTask(task.id, updated);
         setTasks(tasks.map(t => t.id === task.id ? updated : t));
     };
@@ -210,7 +229,15 @@ function School() {
     };
 
     const handleToggleSubtask = async (task, subId) => {
-        const updated = task.subtasks.map(s => s.id === subId ? { ...s, done: !s.done } : s);
+        const updated = task.subtasks.map(s => s.id === subId
+            ? { 
+                ...s, 
+                done: !s.done,
+                status: !s.done ? 'Done' : 'Not Started',
+                completedDate: !s.done ? getTodayStr() : null
+              }
+            : s
+        );
         await storage.updateSchoolTask(task.id, { subtasks: updated });
         setTasks(tasks.map(t => t.id === task.id ? { ...t, subtasks: updated } : t));
         if (calModal?.task?.id === task.id) setCalModal(c => ({ ...c, task: { ...c.task, subtasks: updated } }));
@@ -229,11 +256,18 @@ function School() {
         await storage.updateSchoolTask(task.id, { subtasks: updated });
         setTasks(tasks.map(t => t.id === task.id ? { ...t, subtasks: updated } : t));
         setNewSubtask(emptySubtask);
+        setShowSubtaskInput(null);
     };
 
     const startEditSubtask = (task, sub) => {
         setEditingSubtask({ taskId: task.id, subtaskId: sub.id });
-        setSubtaskEditForm({ title: sub.title, dueDate: sub.dueDate || '', deadline: sub.deadline || '', priority: sub.priority || 'P2' });
+        setSubtaskEditForm({ 
+            title: sub.title, 
+            dueDate: sub.dueDate || '', 
+            deadline: sub.deadline || '', 
+            priority: sub.priority || 'P2',
+            status: sub.status || 'Not Started'  // ← add this
+        });
     };
 
     const handleSaveSubtask = async (task) => {
@@ -241,6 +275,16 @@ function School() {
         await storage.updateSchoolTask(task.id, { subtasks: updated });
         setTasks(tasks.map(t => t.id === task.id ? { ...t, subtasks: updated } : t));
         setEditingSubtask(null);
+    };
+
+    // Subject nav click: switch to All tab and focus that subject
+    const handleSubjectNavClick = (subject) => {
+        setTab('all');
+        setFocusSubject(subject);
+        setTimeout(() => {
+            const el = document.getElementById(`subject-${subject}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
     };
 
     // ── render helpers ──
@@ -252,7 +296,8 @@ function School() {
     };
 
     const renderSubtasks = (task) => {
-        if (expandedTask !== task.id) return null;
+        console.log('subtasks for', task.title, task.subtasks);
+
         return (
             <div className="subtasks-section">
                 {(task.subtasks || []).map(sub => (
@@ -261,10 +306,13 @@ function School() {
                             <div className="subtask-edit-form">
                                 <input value={subtaskEditForm.title} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, title: e.target.value })} />
                                 <div className="subtask-edit-row">
-                                    <label>Due<input type="datetime-local" value={subtaskEditForm.dueDate} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, dueDate: e.target.value })} /></label>
+                                    <label>Do<input type="datetime-local" value={subtaskEditForm.dueDate} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, dueDate: e.target.value })} /></label>
                                     <label>Deadline<input type="datetime-local" value={subtaskEditForm.deadline} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, deadline: e.target.value })} /></label>
                                     <select value={subtaskEditForm.priority} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, priority: e.target.value })}>
                                         {PRIORITIES.map(p => <option key={p}>{p}</option>)}
+                                    </select>
+                                    <select value={subtaskEditForm.status} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, status: e.target.value })}>
+                                        {STATUSES.map(s => <option key={s}>{s}</option>)}
                                     </select>
                                 </div>
                                 <div style={{ display: 'flex', gap: 6 }}>
@@ -278,24 +326,55 @@ function School() {
                                 <span className={`subtask-title ${sub.done ? 'done' : ''}`}>[{sub.priority}] {sub.title}</span>
                                 {sub.dueDate && <span className="subtask-meta">{fmtS(sub.dueDate)}</span>}
                                 {sub.deadline && <span className="subtask-meta deadline">⚠ {fmtS(sub.deadline)}</span>}
-                                <button className="subtask-action" onClick={() => startEditSubtask(task, sub)}>✏</button>
-                                <button className="subtask-action" onClick={() => handleDeleteSubtask(task, sub.id)}>×</button>
+                                <select
+                                    className="status-select"
+                                    value={sub.status || 'Not Started'}
+                                    style={{ background: STATUS_COLOR[sub.status || 'Not Started'].bg, color: STATUS_COLOR[sub.status || 'Not Started'].text }}
+                                    onChange={e => {
+                                        const newStatus = e.target.value;
+                                        const updated = task.subtasks.map(s => s.id === sub.id
+                                            ? { ...s, status: newStatus, done: newStatus === 'Done', completedDate: newStatus === 'Done' ? getTodayStr() : null }
+                                            : s
+                                        );
+                                        storage.updateSchoolTask(task.id, { subtasks: updated });
+                                        setTasks(tasks.map(t => t.id === task.id ? { ...t, subtasks: updated } : t));
+                                    }}
+                                >
+                                    {STATUSES.map(s => <option key={s}>{s}</option>)}
+                                </select>
+                                <div className="task-menu-container" onClick={e => e.stopPropagation()}>
+                                    <button className="ellipsis-btn" onClick={() => setActiveMenu(`sub-${sub.id}`)}>⋮</button>
+                                    {activeMenu === `sub-${sub.id}` && (
+                                        <div className="task-dropdown">
+                                            <button onClick={() => startEditSubtask(task, sub)}><Pencil size={12} /> Edit</button>
+                                            <button className="delete-opt" onClick={() => handleDeleteSubtask(task, sub.id)}><Trash2 size={12} /> Delete</button>
+                                        </div>
+                                    )}
+                                </div>
                             </>
                         )}
                     </div>
                 ))}
-                <div className="add-subtask-form">
-                    <input placeholder="+ subtask title" value={newSubtask.title}
-                        onChange={e => setNewSubtask({ ...newSubtask, title: e.target.value })}
-                        onKeyDown={e => e.key === 'Enter' && handleAddSubtask(task)} />
-                    <button onClick={() => handleAddSubtask(task)}>Add</button>
-                </div>
+    
+                {/* Add subtask toggle */}
+                {showSubtaskInput === task.id ? (
+                    <div className="add-subtask-form">
+                        <input
+                            placeholder="Subtask title"
+                            value={newSubtask.title}
+                            onChange={e => setNewSubtask({ ...newSubtask, title: e.target.value })}
+                            onKeyDown={e => e.key === 'Enter' && handleAddSubtask(task)}
+                            autoFocus
+                        />
+                        <button onClick={() => handleAddSubtask(task)}>Add</button>
+                        <button onClick={() => { setShowSubtaskInput(null); setNewSubtask(emptySubtask); }}>✕</button>
+                    </div>
+                ) : null}
             </div>
         );
     };
 
     // ── compact task card ──
-
     const renderTaskCard = (task) => {
         const isExpanded = expandedTask === task.id;
         const menuOpen   = activeMenu === task.id;
@@ -303,16 +382,15 @@ function School() {
         const cd         = countdown(task.deadline || task.dueDate);
 
         return (
-            <div key={task.id} className="task-card" style={{ borderLeftColor: sc.border }}>
+            <div key={task.id} className="task-card" style={{ borderLeftColor: sc.border }}
+    onDoubleClick={() => setShowSubtaskInput(task.id)}>
                 <div className="task-row">
                     <span className="task-status-dot" style={{ background: sc.dot }} title={task.status} />
-
                     <span className={`task-title ${task.status === 'Done' ? 'done' : ''}`}
-                        onClick={() => setExpandedTask(isExpanded ? null : task.id)}>
+                        onClick={e => { if (e.detail === 1) setExpandedTask(isExpanded ? null : task.id); }}>
                         {task.priority !== 'None' && <span className="priority-tag">{task.priority}</span>}
                         {task.title}
                     </span>
-
                     <span className="task-inline-meta">
                         {task.subject && <span className="subject-chip">{task.subject}</span>}
                         {(task.deadline || task.dueDate) && (
@@ -324,7 +402,6 @@ function School() {
                         )}
                         {cd && <span className={`countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>}
                     </span>
-
                     <div className="task-actions" onClick={e => e.stopPropagation()}>
                         <select className="status-select" value={task.status}
                             onChange={e => handleStatusChange(task, e.target.value)}
@@ -332,38 +409,59 @@ function School() {
                             {STATUSES.map(s => <option key={s}>{s}</option>)}
                         </select>
                         <button className={`pin-btn ${task.pinned ? 'pinned' : ''}`} onClick={() => handleTogglePin(task)}>
-                            {task.pinned ? '📌' : '📍'}
+                            {task.pinned ? <Pin size={13} /> : <PinOff size={13} />}
                         </button>
                         <div className="task-menu-container">
                             <button className="ellipsis-btn" onClick={() => setActiveMenu(menuOpen ? null : task.id)}>⋮</button>
                             {menuOpen && (
                                 <div className="task-dropdown">
-                                    <button onClick={() => openEditForm(task)}>✏️ Edit</button>
-                                    <button className="delete-opt" onClick={() => handleDeleteTask(task.id)}>🗑 Delete</button>
+                                    <button onClick={() => { 
+                                        setShowSubtaskInput(task.id); 
+                                        setExpandedTask(task.id); // expand so dates are visible too
+                                        setActiveMenu(null); 
+                                    }}>
+                                        <Plus size={12} /> Add Subtask
+                                    </button>
+                                    <button onClick={() => openEditForm(task)}><Pencil size={12} /> Edit</button>
+                                    <button className="delete-opt" onClick={() => handleDeleteTask(task.id)}><Trash2 size={12} /> Delete</button>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
-
                 {isExpanded && (
                     <div className="task-expanded">
                         <div className="task-dates">
-                            {task.dueDate && <span className="task-date-row"><Crosshair size={10} color="#3b82f6" /> Due: {fmt(task.dueDate)}</span>}
+                            {task.dueDate && <span className="task-date-row"><Crosshair size={10} color="#3b82f6" /> Do: {fmt(task.dueDate)}</span>}
                             {task.deadline && <span className="task-date-row deadline-text"><Target size={10} color="#ef4444" /> Deadline: {fmt(task.deadline)}</span>}
                         </div>
-                        {renderSubtasks(task)}
                     </div>
                 )}
+                 {renderSubtasks(task)}
             </div>
         );
     };
 
-    // ── calendar ──
+    // ── global status filter bar ──
+    const renderFilterBar = () => (
+        <div className="status-filters">
+            {['All', ...STATUSES].map(s => (
+                <button key={s} className={filterStatus === s ? 'active' : ''} onClick={() => setFilterStatus(s)}>
+                    {s !== 'All' && <span className="filter-dot" style={{ background: STATUS_COLOR[s]?.dot }} />}
+                    {s}
+                </button>
+            ))}
+            <button className={hideDone ? 'active' : ''} onClick={() => setHideDone(h => !h)}>
+                <CheckCircle2 size={11} />
+                {hideDone ? 'Show Done' : 'Hide Done'}
+            </button>
+        </div>
+    );
 
+    // ── calendar ──
     const renderCalendar = () => {
         const tasksByDate = {};
-        tasks.forEach(task => {
+        filteredTasks.forEach(task => {
             const add = (dateStr, type) => {
                 if (!dateStr) return;
                 const key = dateStr.split('T')[0];
@@ -403,12 +501,10 @@ function School() {
                                             )}
                                             <div className="calendar-cell-tasks">
                                                 {items.map((item, idx) => (
-                                                    <button
-                                                        key={idx}
+                                                    <button key={idx}
                                                         className={`calendar-cell-task ${item.type} ${item.task.status === 'Done' ? 'done' : ''}`}
                                                         onClick={() => setCalModal(item)}
-                                                        title={item.task.title}
-                                                    >
+                                                        title={item.task.title}>
                                                         <span className="cal-task-icon">
                                                             {item.type === 'deadline'
                                                                 ? <Target size={8} color="#ef4444" />
@@ -430,7 +526,6 @@ function School() {
     };
 
     // ── calendar detail modal ──
-
     const renderCalModal = () => {
         if (!calModal) return null;
         const { task, type } = calModal;
@@ -438,34 +533,46 @@ function School() {
         const doneSubs = (task.subtasks || []).filter(s => s.done).length;
 
         return (
-            <div className="form-overlay" onClick={() => setCalModal(null)}>
+            <div className="form-overlay" onClick={() => { setCalModal(null); setCalMenuOpen(false); }}>
                 <div className="cal-detail-modal" onClick={e => e.stopPropagation()}>
-                    {/* Header */}
                     <div className="cal-detail-header">
                         <span className={`cal-detail-type-badge ${type}`}>
                             {type === 'deadline'
                                 ? <><Target size={11} color="#ef4444" /> Deadline</>
-                                : <><Crosshair size={11} color="#3b82f6" /> Due Date</>}
+                                : <><Crosshair size={11} color="#3b82f6" /> Do</>}
                         </span>
-                        <button className="form-close-btn" onClick={() => setCalModal(null)}>✕</button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div className="task-menu-container" onClick={e => e.stopPropagation()}>
+                                <button className="ellipsis-btn" onClick={() => setCalMenuOpen(o => !o)}>
+                                    <MoreVertical size={15} />
+                                </button>
+                                {calMenuOpen && (
+                                    <div className="task-dropdown">
+                                        <button onClick={() => { setCalMenuOpen(false); setCalModal(null); openEditForm(task); }}>
+                                            <Pencil size={12} /> Edit
+                                        </button>
+                                        <button className="delete-opt" onClick={() => { setCalMenuOpen(false); handleDeleteTask(task.id); }}>
+                                            <Trash2 size={12} /> Delete
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <button className="form-close-btn" onClick={() => { setCalModal(null); setCalMenuOpen(false); }}>
+                                <X size={15} />
+                            </button>
+                        </div>
                     </div>
-
-                    {/* Title */}
                     <div className="cal-detail-title">
                         {task.priority !== 'None' && <span className="priority-tag">{task.priority}</span>}
                         <span className={task.status === 'Done' ? 'done' : ''}>{task.title}</span>
                     </div>
-
-                    {/* Chips row */}
                     <div className="cal-detail-chips">
-                        {task.subject && <span className="subject-chip">{task.subject}</span>}
+                        {task.subject && <span className="subject-chip-visible">{task.subject}</span>}
                         <span className="status-badge" style={{ background: sc.bg, color: sc.text }}>
                             <span className="status-dot" style={{ background: sc.dot }} />{task.status}
                         </span>
-                        {task.pinned && <span className="subject-chip">📌</span>}
+                        {task.pinned && <span className="subject-chip-visible"><Pin size={10} /></span>}
                     </div>
-
-                    {/* Dates */}
                     <div className="cal-detail-dates">
                         {task.dueDate && (
                             <div className="cal-detail-date-row">
@@ -482,8 +589,6 @@ function School() {
                             </div>
                         )}
                     </div>
-
-                    {/* Subtasks */}
                     {(task.subtasks || []).length > 0 && (
                         <div className="cal-detail-subtasks">
                             <div className="cal-detail-subtask-label">
@@ -498,8 +603,6 @@ function School() {
                             ))}
                         </div>
                     )}
-
-                    {/* Actions */}
                     <div className="cal-detail-actions">
                         <select className="status-select full"
                             value={task.status}
@@ -507,21 +610,50 @@ function School() {
                             style={{ background: sc.bg, color: sc.text }}>
                             {STATUSES.map(s => <option key={s}>{s}</option>)}
                         </select>
-                        <button className="cal-edit-btn" onClick={() => { setCalModal(null); openEditForm(task); }}>✏️ Edit</button>
-                        <button className="cal-delete-btn" onClick={() => handleDeleteTask(task.id)}>🗑</button>
                     </div>
                 </div>
             </div>
         );
     };
 
-    // ── main render ──
+    // ── subject navigator (right panel) ──
+    const renderSubjectNav = () => {
+        if (subjectNavData.length === 0) return null;
+        return (
+            <div className="subject-nav-panel">
+                <div className="subject-nav-title">Subjects</div>
+                <div className="subject-nav-grid">
+                    {subjectNavData.map(({ subject, undone, total }) => (
+                        <button
+                            key={subject}
+                            className={`subject-nav-card ${focusSubject === subject ? 'active' : ''} ${undone === 0 ? 'all-done' : ''}`}
+                            onClick={() => handleSubjectNavClick(subject)}
+                        >
+                            <span className="subject-nav-name">{subject}</span>
+                            <span className="subject-nav-count">
+                                {undone > 0
+                                    ? <><strong>{undone}</strong> left</>
+                                    : <span className="all-done-label">✓ done</span>}
+                            </span>
+                            <div className="subject-nav-bar">
+                                <div
+                                    className="subject-nav-bar-fill"
+                                    style={{ width: `${total > 0 ? ((total - undone) / total) * 100 : 0}%` }}
+                                />
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
+    // ── main render ──
     if (loading) return <div className="loading">Loading…</div>;
 
     return (
-        <div className="school-view">
-            {/* Compact header: title + tabs + new button all in one row */}
+        <div className="school-view module-school">
+            {/* Header */}
             <div className="school-header">
                 <div className="header-left">
                     <h1>School</h1>
@@ -533,11 +665,14 @@ function School() {
                         ))}
                     </div>
                 </div>
-                <button className="new-task-btn" onClick={openNewForm}>+ New</button>
+                <button className="new-task-btn" onClick={openNewForm}>+ New Task</button>
             </div>
 
+            {/* Global filter bar — always visible */}
+            {renderFilterBar()}
+
             <div className="school-main">
-                {/* ── Slim sidebar ── */}
+                {/* Sidebar */}
                 <div className="school-sidebar">
                     <div className="sidebar-card">
                         <div className="sidebar-date">{format(today, 'EEE, MMM d')}</div>
@@ -557,7 +692,7 @@ function School() {
                             const c = STATUS_COLOR[s];
                             return (
                                 <div key={s} className="stat-row clickable"
-                                    onClick={() => { setTab('all'); setFilterStatus(s); }}>
+                                    onClick={() => setFilterStatus(s)}>
                                     <span><span className="status-dot" style={{ background: c.dot }} />{s}</span>
                                     <strong>{tasks.filter(t => t.status === s).length}</strong>
                                 </div>
@@ -567,41 +702,33 @@ function School() {
 
                     {completedToday.length > 0 && (
                         <div className="sidebar-card">
-                            <div className="sidebar-section-label">✓ Done today</div>
+                            <div className="sidebar-section-label">
+                                <CheckCircle2 size={10} /> Done today
+                            </div>
                             {completedToday.map(t => (
                                 <div key={t.id} className="sidebar-completed-item">
-                                    <span className="completed-title">{t.title}</span>
-                                    Done {fmtS(t.completedDate)}
+                                    <span className="completed-title">
+                                        {t.isSubtask && <span className="subtask-parent-label">{t.parentTitle} › </span>}
+                                        {t.title}
+                                    </span>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
 
-                {/* ── Main content ── */}
+                {/* Main content */}
                 <div className="school-content">
                     {tab === 'all' && (
                         <div>
-                            <div className="status-filters">
-                                {['All', ...STATUSES].map(s => (
-                                    <button key={s} className={filterStatus === s ? 'active' : ''} onClick={() => setFilterStatus(s)}>
-                                        {s !== 'All' && <span className="filter-dot" style={{ background: STATUS_COLOR[s]?.dot }} />}
-                                        {s}
-                                    </button>
-                                ))}
-                            </div>
                             {getOrderedSubjects().length === 0 && <p className="empty-msg">No tasks yet.</p>}
                             {getOrderedSubjects().map((subject, idx) => {
                                 const subjectTasks = sortTasks(filteredTasks.filter(t => (t.subject || 'No Subject') === subject));
                                 if (subjectTasks.length === 0) return null;
                                 const ordSubs = getOrderedSubjects();
                                 return (
-                                    <div key={subject} className="subject-group">
+                                    <div key={subject} id={`subject-${subject}`} className={`subject-group ${focusSubject === subject ? 'focused' : ''}`}>
                                         <div className="subject-group-header">
-                                            <div className="subject-move-btns">
-                                                <button onClick={() => handleMoveSubject(subject, 'up')} disabled={idx === 0}>↑</button>
-                                                <button onClick={() => handleMoveSubject(subject, 'down')} disabled={idx === ordSubs.length - 1}>↓</button>
-                                            </div>
                                             {editingSubject === subject ? (
                                                 <div className="subject-rename-row">
                                                     <input value={subjectRenameInput}
@@ -612,10 +739,14 @@ function School() {
                                                 </div>
                                             ) : (
                                                 <h3 onClick={() => { setEditingSubject(subject); setSubjectRenameInput(subject); }}>
-                                                    {subject} <span className="rename-hint">✎</span>
+                                                    {subject} <span className="rename-hint"><Pencil size={10} /></span>
                                                     <span className="subject-count">{subjectTasks.length}</span>
                                                 </h3>
                                             )}
+                                            <div className="subject-move-btns">
+                                                <button onClick={() => handleMoveSubject(subject, 'up')} disabled={idx === 0}><ChevronUp size={12} /></button>
+                                                <button onClick={() => handleMoveSubject(subject, 'down')} disabled={idx === ordSubs.length - 1}><ChevronDown size={12} /></button>
+                                            </div>
                                         </div>
                                         {subjectTasks.map(task => renderTaskCard(task))}
                                     </div>
@@ -626,12 +757,12 @@ function School() {
 
                     {tab === 'urgent' && (
                         <div className="urgent-list">
-                            {sortByUrgency(tasks.filter(t => t.status !== 'Done')).length === 0 && <p className="empty-msg">No pending tasks!</p>}
-                            {sortByUrgency(tasks.filter(t => t.status !== 'Done')).map(task => renderTaskCard(task))}
-                            {tasks.filter(t => t.status === 'Done').length > 0 && (
+                            {sortByUrgency(applyFilters(tasks.filter(t => t.status !== 'Done'))).length === 0 && <p className="empty-msg" style={{padding: '14px 10px'}}>No pending tasks!</p>}
+                            {sortByUrgency(applyFilters(tasks.filter(t => t.status !== 'Done'))).map(task => renderTaskCard(task))}
+                            {!hideDone && applyFilters(tasks.filter(t => t.status === 'Done')).length > 0 && (
                                 <>
                                     <div className="urgent-section-label">Done</div>
-                                    {tasks.filter(t => t.status === 'Done').map(task => renderTaskCard(task))}
+                                    {applyFilters(tasks.filter(t => t.status === 'Done')).map(task => renderTaskCard(task))}
                                 </>
                             )}
                         </div>
@@ -642,7 +773,7 @@ function School() {
                     {tab === 'priorities' && (
                         <div className="priorities-layout">
                             <div className="priorities-column">
-                                <h2>📌 Pinned ({pinnedTasks.length}/3)</h2>
+                                <h2><Pin size={12} /> Pinned ({pinnedTasks.length}/3)</h2>
                                 {pinnedTasks.length === 0 && <p className="empty-msg">Pin up to 3 tasks using 📍.</p>}
                                 {pinnedTasks.map(task => renderTaskCard(task))}
                             </div>
@@ -654,6 +785,9 @@ function School() {
                         </div>
                     )}
                 </div>
+
+                {/* Right panel: subject navigator */}
+                {renderSubjectNav()}
             </div>
 
             {/* Form modal */}
@@ -662,7 +796,7 @@ function School() {
                     <div className="task-form-modal" onClick={e => e.stopPropagation()}>
                         <div className="form-modal-header">
                             <h3>{editingTask ? 'Edit Task' : 'New Task'}</h3>
-                            <button className="form-close-btn" onClick={closeForm}>✕</button>
+                            <button className="form-close-btn" onClick={closeForm}><X size={15} /></button>
                         </div>
                         <input placeholder="Title *" value={form.title}
                             onChange={e => setForm({ ...form, title: e.target.value })} autoFocus />
@@ -694,8 +828,6 @@ function School() {
                     </div>
                 </div>
             )}
-
-            {/* Calendar detail modal */}
             {renderCalModal()}
         </div>
     );

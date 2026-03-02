@@ -342,7 +342,7 @@ function Sleep() {
     if (loading) return <div className="sleep-view"><p>Loading...</p></div>;
 
     return (
-        <div className="sleep-view">
+        <div className="sleep-view module-sleep">
         <div className="view-header">
             <h1>Sleep Tracker</h1>
             <div className="header-actions">
