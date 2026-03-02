@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { storage } from '../../utils/storage';
 import { format, parseISO, isToday, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, getDay } from 'date-fns';
 import { 
-    Target, Crosshair, MoreVertical, Pin, PinOff,
+    Target, Goal, MoreVertical, Pin, PinOff,
     Pencil, Trash2, X, ChevronUp, ChevronDown, CheckCircle2, Plus
 } from 'lucide-react';
 import './School.css';
@@ -295,6 +295,54 @@ function School() {
         return <span className={`countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>;
     };
 
+    // ─── MINI CALENDAR HELPER ─────────────────────────────
+    const SidebarCalendar = ({ tasks, onDateClick }) => {
+        const today = new Date();
+        const start = startOfMonth(today);
+        const end = endOfMonth(today);
+        const days = eachDayOfInterval({ start, end });
+        const offset = getDay(start);
+
+        // Map tasks to dates for quick lookup
+        const taskDates = tasks.reduce((acc, task) => {
+            [task.dueDate, task.deadline].forEach(d => {
+                if (d) acc[d.split('T')[0]] = true;
+            });
+            return acc;
+        }, {});
+
+        return (
+            <div className="mini-calendar">
+                <div className="mini-calendar-header">
+                    {format(today, 'MMMM yyyy')}
+                </div>
+                <div className="mini-calendar-grid">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+                        <div key={d} className="mini-cal-weekday">{d}</div>
+                    ))}
+                    {Array.from({ length: offset }).map((_, i) => (
+                        <div key={`empty-${i}`} />
+                    ))}
+                    {days.map(day => {
+                        const dateStr = format(day, 'yyyy-MM-dd');
+                        const hasTask = taskDates[dateStr];
+                        const isCurrent = isToday(day);
+                        
+                        return (
+                            <div 
+                                key={dateStr} 
+                                className={`mini-cal-day ${isCurrent ? 'today' : ''} ${hasTask ? 'has-task' : ''}`}
+                            >
+                                {format(day, 'd')}
+                                {hasTask && <span className="mini-cal-dot" />}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
     const renderSubtasks = (task) => {
         console.log('subtasks for', task.title, task.subtasks);
 
@@ -396,8 +444,8 @@ function School() {
                         {(task.deadline || task.dueDate) && (
                             <span className="date-chip">
                                 {task.deadline
-                                    ? <><Target size={9} color="#ef4444" /> {fmtS(task.deadline)}</>
-                                    : <><Crosshair size={9} color="#3b82f6" /> {fmtS(task.dueDate)}</>}
+                                    ? <><Goal size={9} color="#ef4444" /> {fmtS(task.deadline)}</>
+                                    : <><Target size={9} color="#3b82f6" /> {fmtS(task.dueDate)}</>}
                             </span>
                         )}
                         {cd && <span className={`countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>}
@@ -432,8 +480,8 @@ function School() {
                 {isExpanded && (
                     <div className="task-expanded">
                         <div className="task-dates">
-                            {task.dueDate && <span className="task-date-row"><Crosshair size={10} color="#3b82f6" /> Do: {fmt(task.dueDate)}</span>}
-                            {task.deadline && <span className="task-date-row deadline-text"><Target size={10} color="#ef4444" /> Deadline: {fmt(task.deadline)}</span>}
+                            {task.dueDate && <span className="task-date-row"><Target size={10} color="#3b82f6" /> Do: {fmt(task.dueDate)}</span>}
+                            {task.deadline && <span className="task-date-row deadline-text"><Goal size={10} color="#ef4444" /> Deadline: {fmt(task.deadline)}</span>}
                         </div>
                     </div>
                 )}
@@ -507,8 +555,8 @@ function School() {
                                                         title={item.task.title}>
                                                         <span className="cal-task-icon">
                                                             {item.type === 'deadline'
-                                                                ? <Target size={8} color="#ef4444" />
-                                                                : <Crosshair size={8} color="#3b82f6" />}
+                                                                ? <Goal size={8} color="#ef4444" />
+                                                                : <Target size={8} color="#3b82f6" />}
                                                         </span>
                                                         <span className="cal-task-name">{item.task.title}</span>
                                                     </button>
@@ -538,8 +586,8 @@ function School() {
                     <div className="cal-detail-header">
                         <span className={`cal-detail-type-badge ${type}`}>
                             {type === 'deadline'
-                                ? <><Target size={11} color="#ef4444" /> Deadline</>
-                                : <><Crosshair size={11} color="#3b82f6" /> Do</>}
+                                ? <><Goal size={11} color="#ef4444" /> Deadline</>
+                                : <><Target size={11} color="#3b82f6" /> Do</>}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <div className="task-menu-container" onClick={e => e.stopPropagation()}>
@@ -576,14 +624,14 @@ function School() {
                     <div className="cal-detail-dates">
                         {task.dueDate && (
                             <div className="cal-detail-date-row">
-                                <Crosshair size={11} color="#3b82f6" />
+                                <Target size={11} color="#3b82f6" />
                                 <span>Due: <strong>{fmt(task.dueDate)}</strong></span>
                                 {renderCd(task.dueDate)}
                             </div>
                         )}
                         {task.deadline && (
                             <div className="cal-detail-date-row deadline-text">
-                                <Target size={11} color="#ef4444" />
+                                <Goal size={11} color="#ef4444" />
                                 <span>Deadline: <strong>{fmt(task.deadline)}</strong></span>
                                 {renderCd(task.deadline)}
                             </div>
@@ -674,7 +722,14 @@ function School() {
             <div className="school-main">
                 {/* Sidebar */}
                 <div className="school-sidebar">
+                    
+                    <div className="sidebar-card calendar-card">
+                        <SidebarCalendar tasks={tasks} />
+                    </div>
+                    
+            
                     <div className="sidebar-card">
+                    <div className = "day-stat">
                         <div className="sidebar-date">{format(today, 'EEE, MMM d')}</div>
                         <div className="sidebar-progress-label">
                             <span>{doneTodayCount}/{tasksDueToday.length} today</span>
@@ -684,6 +739,8 @@ function School() {
                             <div className="sidebar-progress-fill" style={{ width: `${progressPct}%` }} />
                         </div>
                     </div>
+                    </div>
+                
 
                     <div className="sidebar-card sidebar-stats">
                         <div className="sidebar-section-label">Overview</div>
