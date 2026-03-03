@@ -136,6 +136,7 @@
     background: var(--color-surface);
     border-radius: var(--radius-button);
     box-shadow: var(--shadow-sm);
+    overflow: auto;
 }
 
 .day-stat {
@@ -392,8 +393,15 @@
     padding: var(--spacing-sm);
     min-height: 36px;
 }
-.task-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
+/* .task-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; } */
+.task-checkbox {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+    margin-right: 5px;
+}
 .task-title {
     font-weight: 600;
     font-size: 0.78rem;
@@ -402,6 +410,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    margin-left: 5px;
 }
 
 .task-title.done { text-decoration: line-through; color: var(--color-text-tertiary); }
@@ -410,13 +419,15 @@
     display: inline-block;
     font-size: 0.58rem;
     font-weight: 800;
-    background: var(--color-primary-dark);
     color: var(--color-text-inverse);
     padding: 1px 4px;
     border-radius: var(--radius-button);
-    margin-right: var(--spacing-xs);
+    margin-left: var(--spacing-xs);
     vertical-align: middle;
 }
+.priority-tag[data-priority="P1"] { background: #ef4444; }
+.priority-tag[data-priority="P2"] { background: #f97316; }
+.priority-tag[data-priority="P3"] { background: #eab308; }
 
 .task-inline-meta {
     display: contents; /* lets its children participate directly in the parent grid */
@@ -585,6 +596,7 @@
     align-items: center;
     gap: var(--spacing-xs);
     padding: var(--spacing-xs) 0;
+    padding-bottom: 10px;
     font-size: 0.73rem;
     border-bottom: 1px solid var(--color-bg-secondary);
 }
@@ -672,6 +684,7 @@
     font-size: 0.72rem;
     font-weight: 600;
     color: var(--color-text-secondary);
+    padding-bottom: 10px;
 }
 
 .subtask-edit-form input,
@@ -691,10 +704,12 @@
     margin-left: 5px;
     width: 90%;
     box-sizing: border-box;
+    padding-bottom: 10px;
 }
 
 .subtask-edit-row input {
     width: 180px;
+    padding-bottom: 10px;
 }
 
 .subtask-parent-label {
@@ -702,7 +717,7 @@
     font-size: 0.62rem;
 }
 
-.add-subtask-form { display: flex; gap: var(--spacing-xs); margin-top: var(--spacing-xs); }
+.add-subtask-form { display: flex; gap: var(--spacing-xs); margin-top: var(--spacing-xs); padding-bottom: 10px;}
 .add-subtask-form input {
     flex: 1;
     padding: 4px var(--spacing-sm);

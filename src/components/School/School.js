@@ -13,7 +13,7 @@ const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const STATUS_COLOR = {
     'Not Started': { bg: '#f3f4f6', text: '#6b7280', dot: '#9ca3af', border: '#d1d5db' },
-    'In Progress': { bg: '#fef9c3', text: '#92400e', dot: '#f59e0b', border: '#f59e0b' },
+    'In Progress': { bg: '#fef9c3', text: '#92400e', dot: '#ffdd00', border: '#ffdd00' },
     'Done':        { bg: '#dcfce7', text: '#166534', dot: '#22c55e', border: '#22c55e' },
 };
 
@@ -433,11 +433,24 @@ function School() {
             <div key={task.id} className="task-card" style={{ borderLeftColor: sc.border }}
     onDoubleClick={() => setShowSubtaskInput(task.id)}>
                 <div className="task-row">
-                    <span className="task-status-dot" style={{ background: sc.dot }} title={task.status} />
+                    {/* <span className="task-status-dot" style={{ background: sc.dot }} title={task.status} />
                     <span className={`task-title ${task.status === 'Done' ? 'done' : ''}`}
                         onClick={e => { if (e.detail === 1) setExpandedTask(isExpanded ? null : task.id); }}>
                         {task.priority !== 'None' && <span className="priority-tag">{task.priority}</span>}
                         {task.title}
+                    </span> */}
+                    <input
+                        type="checkbox"
+                        className="task-checkbox"
+                        checked={task.status === 'Done'}
+                        onChange={e => handleStatusChange(task, e.target.checked ? 'Done' : 'Not Started')}
+                        onClick={e => e.stopPropagation()}
+                        title={task.status}
+                    />
+                    <span className={`task-title ${task.status === 'Done' ? 'done' : ''}`}
+                        onClick={e => { if (e.detail === 1) setExpandedTask(isExpanded ? null : task.id); }}>
+                        {task.title}
+                        {task.priority !== 'None' && <span className="priority-tag" data-priority={task.priority}>{task.priority}</span>}
                     </span>
                     <span className="task-inline-meta">
                         {task.subject && <span className="subject-chip">{task.subject}</span>}
@@ -611,7 +624,7 @@ function School() {
                         </div>
                     </div>
                     <div className="cal-detail-title">
-                        {task.priority !== 'None' && <span className="priority-tag">{task.priority}</span>}
+                        {task.priority !== 'None' && <span className="priority-tag" data-priority={task.priority}>{task.priority}</span>}
                         <span className={task.status === 'Done' ? 'done' : ''}>{task.title}</span>
                     </div>
                     <div className="cal-detail-chips">
