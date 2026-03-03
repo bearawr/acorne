@@ -531,8 +531,270 @@ export const storage = {
 
     getFitnessData: async () => [],
 
-    // ─── PLACEHOLDERS (ready to fill in later) ───────────────
+    // ─── HOBBIES: READING ─────────────────────────────────────
+
+    getBooks: async () => {
+        try {
+            const ref = userCollection('hBooks');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addBook: async (book) => {
+        try {
+            const ref = userCollection('hBooks');
+            const docRef = await addDoc(ref, book);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updateBook: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hBooks', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deleteBook: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hBooks', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+
+    // ─── HOBBIES: LETTERS ─────────────────────────────────────
+
+    getLetters: async () => {
+        try {
+            const ref = userCollection('hLetters');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addLetter: async (letter) => {
+        try {
+            const ref = userCollection('hLetters');
+            const docRef = await addDoc(ref, letter);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updateLetter: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hLetters', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deleteLetter: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hLetters', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+
+    // ─── HOBBIES: PENPALS ─────────────────────────────────────
+
+    getPenpals: async () => {
+        try {
+            const ref = userCollection('hPenpals');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addPenpal: async (penpal) => {
+        try {
+            const ref = userCollection('hPenpals');
+            const docRef = await addDoc(ref, penpal);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updatePenpal: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hPenpals', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deletePenpal: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hPenpals', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+
+    // ─── HOBBIES: JOURNAL ─────────────────────────────────────
+
+    getJournalEntries: async () => {
+        try {
+            const ref = userCollection('hJournal');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addJournalEntry: async (entry) => {
+        try {
+            const ref = userCollection('hJournal');
+            const docRef = await addDoc(ref, entry);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updateJournalEntry: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hJournal', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deleteJournalEntry: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hJournal', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+
+    // ─── HOBBIES: DRAWING ─────────────────────────────────────
+
+    getDrawingEntries: async () => {
+        try {
+            const ref = userCollection('hDrawing');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addDrawingEntry: async (entry) => {
+        try {
+            const ref = userCollection('hDrawing');
+            const docRef = await addDoc(ref, entry);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updateDrawingEntry: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hDrawing', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deleteDrawingEntry: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hDrawing', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+
+    // ─── HOBBIES: MUSIC ───────────────────────────────────────
+
+    getMusicEntries: async () => {
+        try {
+            const ref = userCollection('hMusic');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addMusicEntry: async (entry) => {
+        try {
+            const ref = userCollection('hMusic');
+            const docRef = await addDoc(ref, entry);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updateMusicEntry: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hMusic', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deleteMusicEntry: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hMusic', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    getMusicInstruments: async () => {
+        try {
+            const uid = getUserId();
+            const snap = await getDocs(collection(db, 'users', uid, 'hMusicMeta'));
+            const found = snap.docs.find(d => d.id === 'instruments');
+            return found ? found.data().list : ['Piano', 'Guitar'];
+        } catch (e) { console.error(e); return ['Piano', 'Guitar']; }
+    },
+    saveMusicInstruments: async (list) => {
+        try {
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid, 'hMusicMeta', 'instruments'), { list });
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+
+    // ─── HOBBIES: CODING ──────────────────────────────────────
+
+    getCodingProjects: async () => {
+        try {
+            const ref = userCollection('hCodingProjects');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addCodingProject: async (project) => {
+        try {
+            const ref = userCollection('hCodingProjects');
+            const docRef = await addDoc(ref, project);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updateCodingProject: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hCodingProjects', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deleteCodingProject: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hCodingProjects', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    getCodingLogs: async () => {
+        try {
+            const ref = userCollection('hCodingLogs');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { console.error(e); return []; }
+    },
+    addCodingLog: async (log) => {
+        // shape: { projectId, date, notes }
+        try {
+            const ref = userCollection('hCodingLogs');
+            const docRef = await addDoc(ref, log);
+            return docRef.id;
+        } catch (e) { console.error(e); return null; }
+    },
+    updateCodingLog: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'hCodingLogs', id), updates);
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+    deleteCodingLog: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'hCodingLogs', id));
+            return true;
+        } catch (e) { console.error(e); return false; }
+    },
+
     getHobbiesData: async () => [],
+
+    // ─── PLACEHOLDERS (ready to fill in later) ───────────────
     getOverviewData: async() => [],
 };
 
