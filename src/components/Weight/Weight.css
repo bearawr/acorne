@@ -1,5 +1,5 @@
 .weight-view {
-    padding: 16px;
+    padding: 10px 50px;
     max-width: 100%;
     overflow-x: hidden;
 }
@@ -340,7 +340,7 @@
 
 .progress-bar-bg {
     width: 100%;
-    height: 10px;
+    height: 40px;
     background-color: #dbedff;
     border-radius: 10px;
     overflow: hidden;

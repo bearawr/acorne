@@ -1,4 +1,4 @@
-import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, differenceInMinutes, getDay } from 'date-fns';
+import { parseISO } from 'date-fns';
 
 // Calculate hours slept between bedtime and wake time
 export const calculateSleepHours = (bedTime, wakeTime) => {

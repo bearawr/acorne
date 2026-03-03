@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek, addWeeks, getDaysInMonth, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek, eachMonthOfInterval } from 'date-fns';
 import { Calendar, BarChart3, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react';
 import SleepInputModal from './SleepInputModal';
 import { storage } from '../../utils/storage';
@@ -114,8 +114,6 @@ function Sleep() {
         });
         return dist;
     }, [sleepData]);
-
-    const maxDistCount = useMemo(() => Math.max(...Object.values(sleepDistribution), 1), [sleepDistribution]);
 
     // Year grid data
     const yearGridMonths = useMemo(() => {

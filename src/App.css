@@ -107,6 +107,17 @@
     background: #cc0000;
 }
 
+.buffer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    font-size: 30px;
+    color: var(--color-text-primary);
+    background: var(--color-bg);
+}
+
 /* @media: A 'Breakpoint' that triggers only when the screen width is 768px or smaller (Tablets/Phones) */
 @media (max-width: 768px) {
     .app {

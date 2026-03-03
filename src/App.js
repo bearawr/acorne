@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth } from './firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import Navigation from './components/common/Navigation';
 import './App.css';
 import './styles/index.css';
@@ -59,7 +59,7 @@ function App() {
     };
 
     if (loading) {
-        return <div className="app">Loading...</div>;
+        return <div className="buffer">Loading...</div>;
     }
 
     if (!user) {
