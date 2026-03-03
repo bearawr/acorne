@@ -3,9 +3,9 @@ import { storage } from '../../utils/storage';
 import {
     format, parseISO, isToday, startOfMonth, endOfMonth,
     eachDayOfInterval, getDay, startOfWeek, endOfWeek,
-    eachMonthOfInterval
+    eachMonthOfInterval,
 } from 'date-fns';
-import { Plus, Pencil, Trash2, X, MoreVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import './Fitness.css';
 
 // ─── HELPERS ──────────────────────────────────────────────
@@ -31,7 +31,6 @@ const fmtMins = (mins) => {
     return `${Math.floor(mins/60)}h${mins%60 > 0 ? ` ${mins%60}m` : ''}`;
 };
 
-// Convert "HH:MM" 24hr to "h:MM AM/PM"
 const fmt12 = (timeStr) => {
     if (!timeStr) return '';
     try {
@@ -42,7 +41,6 @@ const fmt12 = (timeStr) => {
     } catch { return timeStr; }
 };
 
-// Format "yyyy-MM-dd" to "Mar 4, 2026"
 const fmtDate = (dateStr) => {
     if (!dateStr) return '';
     try { return format(parseISO(dateStr), 'MMM d, yyyy'); } catch { return dateStr; }
@@ -58,34 +56,31 @@ const ALL_MONTHS = Array.from({ length: 12 }, (_, i) =>
 );
 
 const MODULE_COLORS = {
-    judo:   '#6366f1',
-    gym:    '#10b981',
-    bw:     '#f59e0b',
-    unique: '#ef4444',
+    judo:   '#0047AB',
+    gym:    '#6E38D5',
+    bw:     '#03fca5',
+    unique: '#ff8ad6',
 };
 
 // ─── ELLIPSIS MENU ────────────────────────────────────────
 
-function EllipsisMenu({ items }) {
+function EllipsisMenu({ items, small = false }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
-
     useEffect(() => {
-        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-        window.addEventListener('click', handler);
-        return () => window.removeEventListener('click', handler);
+        const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        window.addEventListener('click', h);
+        return () => window.removeEventListener('click', h);
     }, []);
-
     return (
         <div className="task-menu-container" ref={ref} onClick={e => e.stopPropagation()}>
             <button className="ellipsis-btn" onClick={() => setOpen(o => !o)}>
-                <MoreVertical size={13} />
+                <MoreVertical size={small ? 12 : 13} />
             </button>
             {open && (
                 <div className="task-dropdown">
                     {items.map((item, i) => (
-                        <button key={i}
-                            className={item.danger ? 'delete-opt' : ''}
+                        <button key={i} className={item.danger ? 'delete-opt' : ''}
                             onClick={() => { item.onClick(); setOpen(false); }}>
                             {item.icon} {item.label}
                         </button>
@@ -98,36 +93,73 @@ function EllipsisMenu({ items }) {
 
 // ─── DAY POPUP MODAL ──────────────────────────────────────
 
-function DayPopup({ date, sessions, onClose, showRandori = false, type = 'session' }) {
-    if (!date) return null;
+function DayPopup({ date, sessions, activeDates, onClose, onEdit, onDelete, showRandori = false }) {
+    const [currentDate] = useState(date);
+    const [currentSessions, setCurrentSessions] = useState(sessions);
+
+    // sorted active dates for navigation
+    const sorted = [...activeDates].sort();
+    const idx = sorted.indexOf(currentDate);
+
+    // When parent updates sessions for navigation, update local
+    useEffect(() => {
+        if (currentDate === date) setCurrentSessions(sessions);
+    }, [sessions, date, currentDate]);
+
+    const hasPrev = idx > 0;
+    const hasNext = idx < sorted.length - 1;
+
     return (
         <div className="form-overlay" onClick={onClose}>
-            <div className="cal-detail-modal" onClick={e => e.stopPropagation()}>
+            <div className="cal-detail-modal fit-day-modal" onClick={e => e.stopPropagation()}>
+                {/* Header */}
                 <div className="cal-detail-header">
-                    <span className="cal-detail-type-badge">{fmtDate(date)}</span>
-                    <button className="form-close-btn" onClick={onClose}><X size={15} /></button>
+                    <div className="fit-modal-nav">
+                        <button className="fit-nav-btn" disabled={!hasPrev}
+                            onClick={() => onClose(sorted[idx - 1])}>
+                            <ChevronLeft size={15} />
+                        </button>
+                        <span className="cal-detail-type-badge">{fmtDate(currentDate)}</span>
+                        <button className="fit-nav-btn" disabled={!hasNext}
+                            onClick={() => onClose(sorted[idx + 1])}>
+                            <ChevronRight size={15} />
+                        </button>
+                    </div>
+                    <button className="form-close-btn" onClick={() => onClose(null)}>
+                        <X size={15} />
+                    </button>
                 </div>
-                {sessions.length === 0 && <p className="fit-empty">No sessions this day.</p>}
-                {sessions.map((s, i) => (
+
+                {/* Sessions */}
+                {currentSessions.length === 0 && <p className="fit-empty">No sessions this day.</p>}
+                {currentSessions.map((s, i) => (
                     <div key={s.id || i} className="fit-popup-session">
-                        {s.startTime && s.endTime && (
+                        <div className="fit-popup-session-header">
                             <div className="fit-popup-row">
-                                <strong>{fmt12(s.startTime)} – {fmt12(s.endTime)}</strong>
-                                <span className="fit-session-dur">({fmtMins(calcMinutes(s.startTime, s.endTime))})</span>
+                                {s._type && <span className="fit-tag">{s._type}</span>}
+                                {s.title && <span className="fit-tag">{s.title}</span>}
+                                {s.startTime && s.endTime && (
+                                    <span className="fit-session-time">
+                                        {fmt12(s.startTime)} – {fmt12(s.endTime)}
+                                        <span className="fit-session-dur"> ({fmtMins(calcMinutes(s.startTime, s.endTime))})</span>
+                                    </span>
+                                )}
                             </div>
-                        )}
-                        {showRandori && s.randori && (
-                            <div className="fit-popup-row"><span className="fit-tag">{s.randori} randori</span></div>
-                        )}
-                        {s.title && <div className="fit-popup-row"><span className="fit-tag">{s.title}</span></div>}
+                            {onEdit && onDelete && s.id && (
+                                <EllipsisMenu small items={[
+                                    { label: 'Edit',   icon: <Pencil size={11} />, onClick: () => { onClose(null); onEdit(s); } },
+                                    { label: 'Delete', icon: <Trash2 size={11} />, danger: true, onClick: () => { onDelete(s.id); onClose(null); } },
+                                ]} />
+                            )}
+                        </div>
+                        {showRandori && s.randori && <div className="fit-popup-row"><span className="fit-tag">{s.randori} randori</span></div>}
                         {s.laps  && <div className="fit-popup-row"><span>{s.laps} laps</span></div>}
                         {s.reps  && <div className="fit-popup-row"><span>{s.reps} reps</span></div>}
                         {s.sets  && <div className="fit-popup-row"><span>{s.sets} sets</span></div>}
-                        {s.value !== undefined && (
-                            <div className="fit-popup-row"><span className="fit-bw-stat-val">{s.value} {s.unit}</span></div>
-                        )}
+                        {s.value !== undefined && <div className="fit-popup-row"><span className="fit-bw-stat-val">{s.value} {s.unit}</span></div>}
+                        {s.note  && <div className="fit-popup-notes">{s.note}</div>}
                         {s.notes && <div className="fit-popup-notes">{s.notes}</div>}
-                        {sessions.length > 1 && i < sessions.length - 1 && <hr className="fit-popup-divider" />}
+                        {currentSessions.length > 1 && i < currentSessions.length - 1 && <hr className="fit-popup-divider" />}
                     </div>
                 ))}
             </div>
@@ -135,10 +167,11 @@ function DayPopup({ date, sessions, onClose, showRandori = false, type = 'sessio
     );
 }
 
-// ─── SESSION CALENDAR (Judo / Gym) ────────────────────────
+// ─── SESSION CALENDAR ─────────────────────────────────────
 
-function SessionCalendar({ sessions, showRandori = false }) {
-    const [popup, setPopup] = useState(null); // { date, sessions }
+function SessionCalendar({ sessions, onEdit, onDelete, showRandori = false, accentColor = '#6366f1' }) {
+    const [popupDate, setPopupDate] = useState(null);
+
     const year = new Date().getFullYear();
     const months = eachMonthOfInterval({ start: new Date(year, 0, 1), end: new Date(year, 11, 31) });
 
@@ -147,6 +180,12 @@ function SessionCalendar({ sessions, showRandori = false }) {
         if (!sessionsByDate[s.date]) sessionsByDate[s.date] = [];
         sessionsByDate[s.date].push(s);
     });
+    const activeDates = Object.keys(sessionsByDate).sort();
+
+    const handlePopupClose = (nextDate) => {
+        if (nextDate) setPopupDate(nextDate);
+        else setPopupDate(null);
+    };
 
     return (
         <>
@@ -161,7 +200,7 @@ function SessionCalendar({ sessions, showRandori = false }) {
                         <div key={monthKey} className="fit-cal-month">
                             <div className="fit-cal-month-header">
                                 <span>{format(month, 'MMM')}</span>
-                                <span className="fit-cal-month-count">{uniqueDays} days</span>
+                                <span className="fit-cal-month-count">{uniqueDays > 0 ? `${uniqueDays}d` : '—'}</span>
                             </div>
                             <div className="fit-cal-month-grid">
                                 {['S','M','T','W','T','F','S'].map((d,i) => (
@@ -172,12 +211,14 @@ function SessionCalendar({ sessions, showRandori = false }) {
                                     const ds = format(day, 'yyyy-MM-dd');
                                     const daySessions = sessionsByDate[ds] || [];
                                     const has = daySessions.length > 0;
+                                    const dayNum = format(day, 'd');
                                     return (
                                         <div key={ds}
-                                            className={`fit-cal-day ${has ? 'has-session' : ''} ${isToday(day) ? 'today' : ''} ${has ? 'clickable' : ''}`}
-                                            title={has ? `${daySessions.length} session(s)` : ''}
-                                            onClick={() => has && setPopup({ date: ds, sessions: daySessions })}>
-                                            {has && <span className="fit-cal-check">✓</span>}
+                                            className={`fit-cal-day ${has ? 'has-session' : 'empty-day'} ${isToday(day) ? 'today' : ''}`}
+                                            style={has ? { background: accentColor } : {}}
+                                            onClick={() => has && setPopupDate(ds)}
+                                            title={fmtDate(ds)}>
+                                            <span className="fit-day-num">{dayNum}</span>
                                         </div>
                                     );
                                 })}
@@ -186,12 +227,16 @@ function SessionCalendar({ sessions, showRandori = false }) {
                     );
                 })}
             </div>
-            {popup && (
+
+            {popupDate && sessionsByDate[popupDate] && (
                 <DayPopup
-                    date={popup.date}
-                    sessions={popup.sessions}
+                    date={popupDate}
+                    sessions={sessionsByDate[popupDate]}
+                    activeDates={activeDates}
+                    onClose={handlePopupClose}
+                    onEdit={(s) => { onEdit && onEdit(s); }}
+                    onDelete={(id) => { onDelete && onDelete(id); }}
                     showRandori={showRandori}
-                    onClose={() => setPopup(null)}
                 />
             )}
         </>
@@ -200,27 +245,32 @@ function SessionCalendar({ sessions, showRandori = false }) {
 
 // ─── BW HEATMAP ───────────────────────────────────────────
 
-function BWHeatmap({ activity, logs }) {
-    const [popup, setPopup] = useState(null);
+function BWHeatmap({ activity, logs, onEditLog, onDeleteLog }) {
+    const [popupDate, setPopupDate] = useState(null);
     const year = new Date().getFullYear();
     const months = eachMonthOfInterval({ start: new Date(year, 0, 1), end: new Date(year, 11, 31) });
 
     const actLogs = logs.filter(l => l.activityId === activity.id);
+    const ul = activity.trackType === 'reps' ? 'reps' : activity.unit;
 
-    // Build date -> total value map
     const dateMap = {};
+    actLogs.forEach(l => { dateMap[l.date] = (dateMap[l.date] || 0) + l.value; });
+    const logsByDate = {};
     actLogs.forEach(l => {
-        dateMap[l.date] = (dateMap[l.date] || 0) + l.value;
+        if (!logsByDate[l.date]) logsByDate[l.date] = [];
+        logsByDate[l.date].push({ ...l, unit: ul });
     });
+
     const values = Object.values(dateMap);
     const maxVal = values.length > 0 ? Math.max(...values) : 1;
+    const activeDates = Object.keys(logsByDate).sort();
 
-    const getIntensity = (val) => {
-        if (!val) return 0;
-        return Math.max(0.15, val / maxVal);
+    const getIntensity = (val) => val ? Math.max(0.18, val / maxVal) : 0;
+
+    const handlePopupClose = (nextDate) => {
+        if (nextDate) setPopupDate(nextDate);
+        else setPopupDate(null);
     };
-
-    const ul = activity.trackType === 'reps' ? 'reps' : activity.unit;
 
     return (
         <>
@@ -229,15 +279,13 @@ function BWHeatmap({ activity, logs }) {
                     const monthKey = format(month, 'yyyy-MM');
                     const days = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
                     const offset = getDay(startOfMonth(month));
-                    const monthTotal = actLogs
-                        .filter(l => l.date?.startsWith(monthKey))
-                        .reduce((a, l) => a + l.value, 0);
+                    const monthTotal = actLogs.filter(l => l.date?.startsWith(monthKey)).reduce((a,l) => a+l.value, 0);
 
                     return (
                         <div key={monthKey} className="fit-cal-month">
                             <div className="fit-cal-month-header">
                                 <span>{format(month, 'MMM')}</span>
-                                <span className="fit-cal-month-count">{monthTotal > 0 ? `${monthTotal} ${ul}` : '—'}</span>
+                                <span className="fit-cal-month-count">{monthTotal > 0 ? `${monthTotal}` : '—'}</span>
                             </div>
                             <div className="fit-cal-month-grid">
                                 {['S','M','T','W','T','F','S'].map((d,i) => (
@@ -248,18 +296,16 @@ function BWHeatmap({ activity, logs }) {
                                     const ds = format(day, 'yyyy-MM-dd');
                                     const val = dateMap[ds] || 0;
                                     const intensity = getIntensity(val);
-                                    const dayLogs = actLogs.filter(l => l.date === ds);
-
+                                    const has = val > 0;
+                                    const dayNum = format(day, 'd');
                                     return (
                                         <div key={ds}
-                                            className={`fit-cal-day fit-heatmap-day ${isToday(day) ? 'today' : ''} ${val > 0 ? 'clickable' : ''}`}
-                                            style={val > 0 ? { background: `rgba(99,102,241,${intensity})`, color: intensity > 0.5 ? 'white' : 'inherit' } : {}}
-                                            title={val > 0 ? `${val} ${ul}` : ''}
-                                            onClick={() => val > 0 && setPopup({
-                                                date: ds,
-                                                sessions: dayLogs.map(l => ({ ...l, unit: ul }))
-                                            })}>
-                                            {val > 0 && <span className="fit-heatmap-val">{val}</span>}
+                                            className={`fit-cal-day fit-heatmap-day ${has ? 'has-session' : 'empty-day'} ${isToday(day) ? 'today' : ''}`}
+                                            style={has ? { background: `rgba(99,102,241,${intensity})` } : {}}
+                                            onClick={() => has && setPopupDate(ds)}
+                                            title={has ? `${val} ${ul}` : fmtDate(ds)}>
+                                            <span className="fit-day-num" style={intensity > 0.5 ? { color: 'white' } : {}}>{dayNum}</span>
+                                            {has && <span className="fit-heatmap-val" style={intensity > 0.5 ? { color: 'white' } : {}}>{val}</span>}
                                         </div>
                                     );
                                 })}
@@ -268,11 +314,15 @@ function BWHeatmap({ activity, logs }) {
                     );
                 })}
             </div>
-            {popup && (
+
+            {popupDate && logsByDate[popupDate] && (
                 <DayPopup
-                    date={popup.date}
-                    sessions={popup.sessions}
-                    onClose={() => setPopup(null)}
+                    date={popupDate}
+                    sessions={logsByDate[popupDate]}
+                    activeDates={activeDates}
+                    onClose={handlePopupClose}
+                    onEdit={onEditLog}
+                    onDelete={onDeleteLog}
                 />
             )}
         </>
@@ -296,11 +346,11 @@ function SessionStats({ sessions }) {
     return (
         <div className="fit-stats-panel">
             <div className="fit-stat-total">
-                <div><span className="fit-stat-big">{totalDays}</span> days trained</div>
+                <div><span className="fit-stat-big">{totalDays}</span> days</div>
                 <div><span className="fit-stat-big">{fmtMins(totalMins)}</span> total</div>
             </div>
             <table className="fit-stats-table">
-                <thead><tr><th>Month</th><th>Days</th><th>Hours</th></tr></thead>
+                <thead><tr><th>Month</th><th>Days</th><th>Hrs</th></tr></thead>
                 <tbody>
                     {ALL_MONTHS.map(m => (
                         <tr key={m} className={byMonth[m].days.size === 0 ? 'fit-row-empty' : ''}>
@@ -323,16 +373,13 @@ function SessionForm({ onSave, onCancel, initial = {}, showRandori = false }) {
         ...initial,
     });
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
     return (
         <div className="fit-form">
             <div className="fit-form-row">
                 <label>Date<input type="date" value={form.date} onChange={e => set('date', e.target.value)} /></label>
                 <label>Start<input type="time" value={form.startTime} onChange={e => set('startTime', e.target.value)} /></label>
                 <label>End<input type="time" value={form.endTime} onChange={e => set('endTime', e.target.value)} /></label>
-                {showRandori && (
-                    <label>Randori #<input type="number" min="0" value={form.randori} onChange={e => set('randori', e.target.value)} style={{ width: 60 }} /></label>
-                )}
+                {showRandori && <label>Randori #<input type="number" min="0" value={form.randori} onChange={e => set('randori', e.target.value)} style={{ width: 60 }} /></label>}
             </div>
             <textarea placeholder="Notes (optional)" value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} />
             <div className="fit-form-actions">
@@ -343,75 +390,38 @@ function SessionForm({ onSave, onCancel, initial = {}, showRandori = false }) {
     );
 }
 
-// ─── SESSION LIST ─────────────────────────────────────────
+// ─── LOG INPUT MODAL ──────────────────────────────────────
 
-function SessionList({ sessions, onEdit, onDelete, showRandori = false }) {
-    const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
-    if (sorted.length === 0) return <p className="fit-empty">No sessions logged yet.</p>;
+function LogInputModal({ activity, onSave, onClose }) {
+    const ul = activity.trackType === 'reps' ? 'reps' : activity.unit;
+    const [value, setValue] = useState('');
+    const [note, setNote] = useState('');
     return (
-        <div className="fit-session-list">
-            {sorted.map(s => (
-                <div key={s.id} className="fit-session-row">
-                    <div className="fit-session-main">
-                        <span className="fit-session-date">{fmtDate(s.date)}</span>
-                        {s.startTime && s.endTime && (
-                            <span className="fit-session-time">
-                                {fmt12(s.startTime)} – {fmt12(s.endTime)}
-                                <span className="fit-session-dur"> ({fmtMins(calcMinutes(s.startTime, s.endTime))})</span>
-                            </span>
-                        )}
-                        {showRandori && s.randori && (
-                            <span className="fit-session-tag">{s.randori} randori</span>
-                        )}
-                    </div>
-                    {s.notes && <div className="fit-session-notes">{s.notes}</div>}
-                    <EllipsisMenu items={[
-                        { label: 'Edit', icon: <Pencil size={12} />, onClick: () => onEdit(s) },
-                        { label: 'Delete', icon: <Trash2 size={12} />, danger: true, onClick: () => onDelete(s.id) },
-                    ]} />
+        <div className="form-overlay" onClick={onClose}>
+            <div className="cal-detail-modal fit-log-modal" onClick={e => e.stopPropagation()}>
+                <div className="cal-detail-header">
+                    <span className="cal-detail-type-badge">Log — {activity.name}</span>
+                    <button className="form-close-btn" onClick={onClose}><X size={15} /></button>
                 </div>
-            ))}
-        </div>
-    );
-}
-
-// ─── LOG ROW (BW) ─────────────────────────────────────────
-
-function LogRow({ log, ul, onDelete, onUpdate }) {
-    const [editing, setEditing] = useState(false);
-    const [editVal, setEditVal] = useState(log.value);
-    const [editNote, setEditNote] = useState(log.note || '');
-
-    const handleSave = () => {
-        onUpdate(log.id, { value: Number(editVal), note: editNote });
-        setEditing(false);
-    };
-
-    if (editing) {
-        return (
-            <div className="fit-log-row fit-log-row-editing">
-                <span className="fit-log-date">{fmtDate(log.date)}</span>
-                <input type="number" min="0" value={editVal}
-                    onChange={e => setEditVal(e.target.value)}
-                    style={{ width: 60 }} autoFocus />
-                <input placeholder="Note" value={editNote}
-                    onChange={e => setEditNote(e.target.value)}
-                    style={{ flex: 1 }} />
-                <button className="fit-btn-primary" style={{ padding: '2px 8px', fontSize: '0.68rem' }} onClick={handleSave}>Save</button>
-                <button className="fit-btn" style={{ padding: '2px 8px', fontSize: '0.68rem' }} onClick={() => setEditing(false)}>✕</button>
+                <div className="fit-log-modal-body">
+                    <input
+                        type="number" min="0" autoFocus
+                        placeholder={`Enter ${ul}`}
+                        value={value}
+                        onChange={e => setValue(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && value && onSave(Number(value), note)}
+                    />
+                    <input
+                        placeholder="Note (optional)"
+                        value={note}
+                        onChange={e => setNote(e.target.value)}
+                    />
+                </div>
+                <div className="fit-form-actions">
+                    <button className="fit-btn-primary" onClick={() => value && onSave(Number(value), note)}>Save</button>
+                    <button className="fit-btn" onClick={onClose}>Cancel</button>
+                </div>
             </div>
-        );
-    }
-
-    return (
-        <div className="fit-log-row">
-            <span className="fit-log-date">{fmtDate(log.date)}</span>
-            <span className="fit-log-val">{log.value} {ul}</span>
-            {log.note && <span className="fit-log-note">{log.note}</span>}
-            <EllipsisMenu items={[
-                { label: 'Edit', icon: <Pencil size={12} />, onClick: () => setEditing(true) },
-                { label: 'Delete', icon: <Trash2 size={12} />, danger: true, onClick: () => onDelete(log.id) },
-            ]} />
         </div>
     );
 }
@@ -453,10 +463,13 @@ function JudoTab({ sessions, setSessions }) {
                         onSave={handleSave}
                         onCancel={() => { setShowForm(false); setEditing(null); }} />
                 )}
-                <SessionCalendar sessions={sessions} showRandori />
-                <SessionList sessions={sessions} showRandori
+                <SessionCalendar
+                    sessions={sessions}
+                    showRandori
+                    accentColor={MODULE_COLORS.judo}
                     onEdit={s => { setEditing(s); setShowForm(true); }}
-                    onDelete={handleDelete} />
+                    onDelete={handleDelete}
+                />
             </div>
             <SessionStats sessions={sessions} />
         </div>
@@ -500,10 +513,12 @@ function GymTab({ sessions, setSessions }) {
                         onSave={handleSave}
                         onCancel={() => { setShowForm(false); setEditing(null); }} />
                 )}
-                <SessionCalendar sessions={sessions} />
-                <SessionList sessions={sessions}
+                <SessionCalendar
+                    sessions={sessions}
+                    accentColor={MODULE_COLORS.gym}
                     onEdit={s => { setEditing(s); setShowForm(true); }}
-                    onDelete={handleDelete} />
+                    onDelete={handleDelete}
+                />
             </div>
             <SessionStats sessions={sessions} />
         </div>
@@ -515,7 +530,8 @@ function GymTab({ sessions, setSessions }) {
 function BodyWeightTab({ activities, setActivities, logs, setLogs }) {
     const [showActivityForm, setShowActivityForm] = useState(false);
     const [editingActivity, setEditingActivity] = useState(null);
-    const [logForms, setLogForms] = useState({});
+    const [logModal, setLogModal] = useState(null); // activity to log for
+    const [editingLog, setEditingLog] = useState(null);
     const [activityForm, setActivityForm] = useState({
         name: '', trackType: 'reps', unit: 'reps',
         goals: { daily: '', weekly: '', monthly: '', yearly: '' }
@@ -525,6 +541,20 @@ function BodyWeightTab({ activities, setActivities, logs, setLogs }) {
         name: '', trackType: 'reps', unit: 'reps',
         goals: { daily: '', weekly: '', monthly: '', yearly: '' }
     });
+
+    // Auto-calculate goals from daily
+    const setDailyGoal = (val) => {
+        const n = Number(val);
+        setActivityForm(f => ({
+            ...f,
+            goals: {
+                daily:   val,
+                weekly:  val ? String(Math.round(n * 7))   : '',
+                monthly: val ? String(Math.round(n * 30))  : '',
+                yearly:  val ? String(Math.round(n * 365)) : '',
+            }
+        }));
+    };
 
     const handleSaveActivity = async () => {
         if (!activityForm.name.trim()) return;
@@ -547,18 +577,28 @@ function BodyWeightTab({ activities, setActivities, logs, setLogs }) {
         setLogs(l => l.filter(x => x.activityId !== id));
     };
 
-    const handleLogSubmit = async (activity) => {
-        const f = logForms[activity.id] || {};
-        if (!f.value) return;
-        const log = { activityId: activity.id, date: getTodayStr(), value: Number(f.value), note: f.note || '' };
+    const handleLogSave = async (activity, value, note) => {
+        const log = { activityId: activity.id, date: getTodayStr(), value, note: note || '' };
         const id = await storage.addBWLog(log);
         setLogs(l => [...l, { ...log, id }]);
-        setLogForms(f => ({ ...f, [activity.id]: { value: '', note: '' } }));
+        setLogModal(null);
     };
 
     const handleDeleteLog = async (id) => {
+        if (!window.confirm('Delete this log entry?')) return;
         await storage.deleteBWLog(id);
         setLogs(l => l.filter(x => x.id !== id));
+    };
+
+    const handleUpdateLog = async (id, updates) => {
+        await storage.updateBWLog(id, updates);
+        setLogs(prev => prev.map(x => x.id === id ? { ...x, ...updates } : x));
+    };
+
+    const getTodayTotal = (activityId) => {
+        const today = getTodayStr();
+        return logs.filter(l => l.activityId === activityId && l.date === today)
+            .reduce((a, l) => a + l.value, 0);
     };
 
     const getActivityStats = (activityId) => {
@@ -570,7 +610,6 @@ function BodyWeightTab({ activities, setActivities, logs, setLogs }) {
         const lastWeekStart = format(startOfWeek(new Date(now.getTime() - 7*86400000)), 'yyyy-MM-dd');
         const lastWeekEnd   = format(endOfWeek(new Date(now.getTime() - 7*86400000)), 'yyyy-MM-dd');
         const lastMonthKey  = format(new Date(now.getFullYear(), now.getMonth()-1, 1), 'yyyy-MM');
-
         return {
             weekTotal:      actLogs.filter(l => l.date >= weekStart && l.date <= weekEnd).reduce((a,l) => a+l.value, 0),
             monthTotal:     actLogs.filter(l => l.date?.startsWith(monthKey)).reduce((a,l) => a+l.value, 0),
@@ -580,153 +619,211 @@ function BodyWeightTab({ activities, setActivities, logs, setLogs }) {
         };
     };
 
+    const scrollToActivity = (id) => {
+        const el = document.getElementById(`bw-activity-${id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     return (
-        <div className="fit-bw-layout">
-            <div className="fit-section-header">
-                <h3>Body Weight Activities</h3>
-                <button className="fit-btn-primary" onClick={() => { resetActivityForm(); setEditingActivity(null); setShowActivityForm(true); }}>
-                    <Plus size={13} /> Add Activity
-                </button>
+        <div className="fit-bw-outer">
+            {/* Left nav card */}
+            <div className="fit-bw-nav-card">
+                <div className="fit-bw-nav-header">
+                    <span>Activities</span>
+                    <button className="fit-btn-primary fit-btn-xs"
+                        onClick={() => { resetActivityForm(); setEditingActivity(null); setShowActivityForm(true); }}>
+                        <Plus size={11} />
+                    </button>
+                </div>
+                {activities.length === 0 && <p className="fit-empty" style={{ fontSize: '0.65rem' }}>None yet.</p>}
+                {activities.map(act => {
+                    const todayTotal = getTodayTotal(act.id);
+                    const ul = act.trackType === 'reps' ? 'reps' : act.unit;
+                    return (
+                        <div key={act.id} className="fit-bw-nav-item">
+                            <button className="fit-bw-nav-label" onClick={() => scrollToActivity(act.id)}>
+                                {act.name}
+                            </button>
+                            <button
+                                className={`fit-bw-today-btn ${todayTotal > 0 ? 'has-log' : ''}`}
+                                onClick={() => setLogModal(act)}
+                                title={`Today: ${todayTotal} ${ul}. Click to log.`}>
+                                {todayTotal > 0 ? todayTotal : '0'}
+                            </button>
+                        </div>
+                    );
+                })}
             </div>
 
-            {showActivityForm && (
-                <div className="fit-form">
-                    <div className="fit-form-row">
-                        <label>Name
-                            <input value={activityForm.name} onChange={e => setActivityForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Push-ups" />
-                        </label>
-                        <label>Track Type
-                            <select value={activityForm.trackType} onChange={e => {
-                                const t = e.target.value;
-                                setActivityForm(f => ({ ...f, trackType: t, unit: t === 'reps' ? 'reps' : 'seconds' }));
-                            }}>
-                                <option value="reps">Reps</option>
-                                <option value="duration">Duration</option>
-                            </select>
-                        </label>
-                        {activityForm.trackType === 'duration' && (
-                            <label>Unit
-                                <select value={activityForm.unit} onChange={e => setActivityForm(f => ({ ...f, unit: e.target.value }))}>
-                                    <option value="seconds">Seconds</option>
-                                    <option value="minutes">Minutes</option>
+            {/* Right: activity detail area */}
+            <div className="fit-bw-main">
+                {showActivityForm && (
+                    <div className="fit-form" style={{ marginBottom: 12 }}>
+                        <div className="fit-form-row">
+                            <label>Name
+                                <input value={activityForm.name}
+                                    onChange={e => setActivityForm(f => ({ ...f, name: e.target.value }))}
+                                    placeholder="e.g. Push-ups" />
+                            </label>
+                            <label>Track Type
+                                <select value={activityForm.trackType} onChange={e => {
+                                    const t = e.target.value;
+                                    setActivityForm(f => ({ ...f, trackType: t, unit: t === 'reps' ? 'reps' : 'seconds' }));
+                                }}>
+                                    <option value="reps">Reps</option>
+                                    <option value="duration">Duration</option>
                                 </select>
                             </label>
-                        )}
+                            {activityForm.trackType === 'duration' && (
+                                <label>Unit
+                                    <select value={activityForm.unit} onChange={e => setActivityForm(f => ({ ...f, unit: e.target.value }))}>
+                                        <option value="seconds">Seconds</option>
+                                        <option value="minutes">Minutes</option>
+                                    </select>
+                                </label>
+                            )}
+                        </div>
+                        <div className="fit-form-row">
+                            <label>Daily Goal
+                                <input type="number" min="0" value={activityForm.goals.daily}
+                                    onChange={e => setDailyGoal(e.target.value)} />
+                            </label>
+                            <label style={{ opacity: 0.6 }}>Weekly (auto)
+                                <input type="number" value={activityForm.goals.weekly} readOnly />
+                            </label>
+                            <label style={{ opacity: 0.6 }}>Monthly (auto)
+                                <input type="number" value={activityForm.goals.monthly} readOnly />
+                            </label>
+                            <label style={{ opacity: 0.6 }}>Yearly (auto)
+                                <input type="number" value={activityForm.goals.yearly} readOnly />
+                            </label>
+                        </div>
+                        <div className="fit-form-actions">
+                            <button className="fit-btn-primary" onClick={handleSaveActivity}>Save</button>
+                            <button className="fit-btn" onClick={() => { setShowActivityForm(false); setEditingActivity(null); }}>Cancel</button>
+                        </div>
                     </div>
-                    <div className="fit-form-row">
-                        <label>Daily Goal    <input type="number" min="0" value={activityForm.goals.daily}   onChange={e => setActivityForm(f => ({ ...f, goals: { ...f.goals, daily:   e.target.value } }))} /></label>
-                        <label>Weekly Goal   <input type="number" min="0" value={activityForm.goals.weekly}  onChange={e => setActivityForm(f => ({ ...f, goals: { ...f.goals, weekly:  e.target.value } }))} /></label>
-                        <label>Monthly Goal  <input type="number" min="0" value={activityForm.goals.monthly} onChange={e => setActivityForm(f => ({ ...f, goals: { ...f.goals, monthly: e.target.value } }))} /></label>
-                        <label>Yearly Goal   <input type="number" min="0" value={activityForm.goals.yearly}  onChange={e => setActivityForm(f => ({ ...f, goals: { ...f.goals, yearly:  e.target.value } }))} /></label>
-                    </div>
-                    <div className="fit-form-actions">
-                        <button className="fit-btn-primary" onClick={handleSaveActivity}>Save</button>
-                        <button className="fit-btn" onClick={() => { setShowActivityForm(false); setEditingActivity(null); }}>Cancel</button>
+                )}
+
+                {activities.length === 0 && !showActivityForm && (
+                    <p className="fit-empty">Add an activity using the panel on the left.</p>
+                )}
+
+                {activities.map(act => {
+                    const stats = getActivityStats(act.id);
+                    const ul = act.trackType === 'reps' ? 'reps' : act.unit;
+                    const weekDiff  = stats.weekTotal  - stats.lastWeekTotal;
+                    const monthDiff = stats.monthTotal - stats.lastMonthTotal;
+
+                    return (
+                        <div key={act.id} id={`bw-activity-${act.id}`} className="fit-bw-card">
+                            <div className="fit-bw-card-header">
+                                <div className="fit-bw-card-title">
+                                    <strong>{act.name}</strong>
+                                    <span className="fit-tag">{act.trackType === 'reps' ? 'Reps' : `Duration (${act.unit})`}</span>
+                                </div>
+                                <EllipsisMenu items={[
+                                    { label: 'Edit', icon: <Pencil size={12} />, onClick: () => {
+                                        setActivityForm({ ...act, goals: act.goals || { daily:'', weekly:'', monthly:'', yearly:'' } });
+                                        setEditingActivity(act); setShowActivityForm(true);
+                                    }},
+                                    { label: 'Delete', icon: <Trash2 size={12} />, danger: true, onClick: () => handleDeleteActivity(act.id) },
+                                ]} />
+                            </div>
+
+                            <BWHeatmap
+                                activity={act}
+                                logs={logs}
+                                onEditLog={(log) => setEditingLog(log)}
+                                onDeleteLog={handleDeleteLog}
+                            />
+
+                            <div className="fit-bw-stats">
+                                <div className="fit-bw-stat">
+                                    <span className="fit-bw-stat-label">Week</span>
+                                    <span className="fit-bw-stat-val">{stats.weekTotal} {ul}</span>
+                                    {act.goals?.weekly && <span className="fit-bw-stat-goal">/ {act.goals.weekly}</span>}
+                                    {stats.lastWeekTotal > 0 && (
+                                        <span className={`fit-trend ${weekDiff >= 0 ? 'up' : 'down'}`}>
+                                            {weekDiff >= 0 ? '▲' : '▼'} {Math.abs(weekDiff)}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="fit-bw-stat">
+                                    <span className="fit-bw-stat-label">Month</span>
+                                    <span className="fit-bw-stat-val">{stats.monthTotal} {ul}</span>
+                                    {act.goals?.monthly && <span className="fit-bw-stat-goal">/ {act.goals.monthly}</span>}
+                                    {stats.lastMonthTotal > 0 && (
+                                        <span className={`fit-trend ${monthDiff >= 0 ? 'up' : 'down'}`}>
+                                            {monthDiff >= 0 ? '▲' : '▼'} {Math.abs(monthDiff)}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="fit-bw-stat">
+                                    <span className="fit-bw-stat-label">Year</span>
+                                    <span className="fit-bw-stat-val">{stats.yearTotal} {ul}</span>
+                                    {act.goals?.yearly && <span className="fit-bw-stat-goal">/ {act.goals.yearly}</span>}
+                                </div>
+                            </div>
+
+                            {act.goals?.weekly && (
+                                <div className="fit-progress-row">
+                                    <span>Wk</span>
+                                    <div className="fit-progress-bg">
+                                        <div className="fit-progress-fill" style={{ width: `${Math.min(100,(stats.weekTotal/act.goals.weekly)*100)}%` }} />
+                                    </div>
+                                    <span>{Math.round((stats.weekTotal/act.goals.weekly)*100)}%</span>
+                                </div>
+                            )}
+                            {act.goals?.monthly && (
+                                <div className="fit-progress-row">
+                                    <span>Mo</span>
+                                    <div className="fit-progress-bg">
+                                        <div className="fit-progress-fill" style={{ width: `${Math.min(100,(stats.monthTotal/act.goals.monthly)*100)}%` }} />
+                                    </div>
+                                    <span>{Math.round((stats.monthTotal/act.goals.monthly)*100)}%</span>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Log modal */}
+            {logModal && (
+                <LogInputModal
+                    activity={logModal}
+                    onSave={(value, note) => handleLogSave(logModal, value, note)}
+                    onClose={() => setLogModal(null)}
+                />
+            )}
+
+            {/* Edit log modal */}
+            {editingLog && (
+                <div className="form-overlay" onClick={() => setEditingLog(null)}>
+                    <div className="cal-detail-modal fit-log-modal" onClick={e => e.stopPropagation()}>
+                        <div className="cal-detail-header">
+                            <span className="cal-detail-type-badge">Edit Log — {fmtDate(editingLog.date)}</span>
+                            <button className="form-close-btn" onClick={() => setEditingLog(null)}><X size={15} /></button>
+                        </div>
+                        <div className="fit-log-modal-body">
+                            <input type="number" min="0" autoFocus
+                                value={editingLog.value}
+                                onChange={e => setEditingLog(l => ({ ...l, value: Number(e.target.value) }))} />
+                            <input placeholder="Note"
+                                value={editingLog.note || ''}
+                                onChange={e => setEditingLog(l => ({ ...l, note: e.target.value }))} />
+                        </div>
+                        <div className="fit-form-actions">
+                            <button className="fit-btn-primary" onClick={() => {
+                                handleUpdateLog(editingLog.id, { value: editingLog.value, note: editingLog.note });
+                                setEditingLog(null);
+                            }}>Save</button>
+                            <button className="fit-btn" onClick={() => setEditingLog(null)}>Cancel</button>
+                        </div>
                     </div>
                 </div>
             )}
-
-            {activities.length === 0 && !showActivityForm && <p className="fit-empty">No activities yet. Add one above.</p>}
-
-            {activities.map(act => {
-                const stats = getActivityStats(act.id);
-                const actLogs = logs.filter(l => l.activityId === act.id).sort((a,b) => b.date.localeCompare(a.date));
-                const lf = logForms[act.id] || { value: '', note: '' };
-                const ul = act.trackType === 'reps' ? 'reps' : act.unit;
-                const weekDiff  = stats.weekTotal  - stats.lastWeekTotal;
-                const monthDiff = stats.monthTotal - stats.lastMonthTotal;
-
-                return (
-                    <div key={act.id} className="fit-bw-card">
-                        <div className="fit-bw-card-header">
-                            <div className="fit-bw-card-title">
-                                <strong>{act.name}</strong>
-                                <span className="fit-tag">{act.trackType === 'reps' ? 'Reps' : `Duration (${act.unit})`}</span>
-                            </div>
-                            <EllipsisMenu items={[
-                                { label: 'Edit', icon: <Pencil size={12} />, onClick: () => { setActivityForm({ ...act }); setEditingActivity(act); setShowActivityForm(true); } },
-                                { label: 'Delete', icon: <Trash2 size={12} />, danger: true, onClick: () => handleDeleteActivity(act.id) },
-                            ]} />
-                        </div>
-
-                        {/* Heatmap */}
-                        <BWHeatmap activity={act} logs={logs} />
-
-                        {/* Stats */}
-                        <div className="fit-bw-stats">
-                            <div className="fit-bw-stat">
-                                <span className="fit-bw-stat-label">This week</span>
-                                <span className="fit-bw-stat-val">{stats.weekTotal} {ul}</span>
-                                {act.goals.weekly && <span className="fit-bw-stat-goal">/ {act.goals.weekly} goal</span>}
-                                {stats.lastWeekTotal > 0 && (
-                                    <span className={`fit-trend ${weekDiff >= 0 ? 'up' : 'down'}`}>
-                                        {weekDiff >= 0 ? '▲' : '▼'} {Math.abs(weekDiff)} vs last week
-                                    </span>
-                                )}
-                            </div>
-                            <div className="fit-bw-stat">
-                                <span className="fit-bw-stat-label">This month</span>
-                                <span className="fit-bw-stat-val">{stats.monthTotal} {ul}</span>
-                                {act.goals.monthly && <span className="fit-bw-stat-goal">/ {act.goals.monthly} goal</span>}
-                                {stats.lastMonthTotal > 0 && (
-                                    <span className={`fit-trend ${monthDiff >= 0 ? 'up' : 'down'}`}>
-                                        {monthDiff >= 0 ? '▲' : '▼'} {Math.abs(monthDiff)} vs last month
-                                    </span>
-                                )}
-                            </div>
-                            <div className="fit-bw-stat">
-                                <span className="fit-bw-stat-label">This year</span>
-                                <span className="fit-bw-stat-val">{stats.yearTotal} {ul}</span>
-                                {act.goals.yearly && <span className="fit-bw-stat-goal">/ {act.goals.yearly} goal</span>}
-                            </div>
-                        </div>
-
-                        {act.goals.weekly && (
-                            <div className="fit-progress-row">
-                                <span>Weekly</span>
-                                <div className="fit-progress-bg">
-                                    <div className="fit-progress-fill" style={{ width: `${Math.min(100, (stats.weekTotal / act.goals.weekly) * 100)}%` }} />
-                                </div>
-                                <span>{Math.round((stats.weekTotal / act.goals.weekly) * 100)}%</span>
-                            </div>
-                        )}
-                        {act.goals.monthly && (
-                            <div className="fit-progress-row">
-                                <span>Monthly</span>
-                                <div className="fit-progress-bg">
-                                    <div className="fit-progress-fill" style={{ width: `${Math.min(100, (stats.monthTotal / act.goals.monthly) * 100)}%` }} />
-                                </div>
-                                <span>{Math.round((stats.monthTotal / act.goals.monthly) * 100)}%</span>
-                            </div>
-                        )}
-
-                        {/* Log input */}
-                        <div className="fit-log-input-row">
-                            <input type="number" min="0" placeholder={`Log ${ul} today`}
-                                value={lf.value}
-                                onChange={e => setLogForms(f => ({ ...f, [act.id]: { ...lf, value: e.target.value } }))}
-                                onKeyDown={e => e.key === 'Enter' && handleLogSubmit(act)} />
-                            <input placeholder="Note (optional)" value={lf.note}
-                                onChange={e => setLogForms(f => ({ ...f, [act.id]: { ...lf, note: e.target.value } }))}
-                                onKeyDown={e => e.key === 'Enter' && handleLogSubmit(act)} />
-                            <button className="fit-btn-primary" onClick={() => handleLogSubmit(act)}>Add</button>
-                        </div>
-
-                        {actLogs.length > 0 && (
-                            <div className="fit-log-list">
-                                {actLogs.slice(0, 10).map(l => (
-                                    <LogRow key={l.id} log={l} ul={ul}
-                                        onDelete={handleDeleteLog}
-                                        onUpdate={(id, updates) => {
-                                            storage.updateBWLog(id, updates);
-                                            setLogs(prev => prev.map(x => x.id === id ? { ...x, ...updates } : x));
-                                        }} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                );
-            })}
         </div>
     );
 }
@@ -737,11 +834,11 @@ function UniqueTab({ activities, setActivities }) {
     const [tags, setTags] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [popup, setPopup] = useState(null);
     const [form, setForm] = useState({
         title: '', date: getTodayStr(), startTime: '', endTime: '',
         laps: '', reps: '', sets: '', notes: '',
     });
-    const [popup, setPopup] = useState(null);
 
     useEffect(() => { storage.getUniqueTags().then(setTags); }, []);
 
@@ -771,24 +868,60 @@ function UniqueTab({ activities, setActivities }) {
         setActivities(a => a.filter(x => x.id !== id));
     };
 
+    // Group activities by title
+    const grouped = {};
+    activities.forEach(a => {
+        if (!grouped[a.title]) grouped[a.title] = [];
+        grouped[a.title].push(a);
+    });
+    const groupTitles = Object.keys(grouped).sort();
+
+    // Build calendar data for each group
     const year = new Date().getFullYear();
     const months = eachMonthOfInterval({ start: new Date(year, 0, 1), end: new Date(year, 11, 31) });
-    const actByDate = {};
-    activities.forEach(a => {
-        if (!actByDate[a.date]) actByDate[a.date] = [];
-        actByDate[a.date].push(a);
-    });
 
     return (
-        <div className="fit-tab-layout">
-            <div className="fit-tab-main">
+        <div className="fit-bw-outer">
+            {/* Left nav card */}
+            <div className="fit-bw-nav-card">
+                <div className="fit-bw-nav-header">
+                    <span>Activities</span>
+                    <button className="fit-btn-primary fit-btn-xs"
+                        onClick={() => { setEditing(null); setShowForm(true); }}>
+                        <Plus size={11} />
+                    </button>
+                </div>
+                {groupTitles.length === 0 && <p className="fit-empty" style={{ fontSize: '0.65rem' }}>None yet.</p>}
+                {groupTitles.map(title => {
+                    const count = grouped[title].length;
+                    const monthCount = grouped[title].filter(a => a.date?.startsWith(format(new Date(), 'yyyy-MM'))).length;
+                    return (
+                        <div key={title} className="fit-bw-nav-item">
+                            <button className="fit-bw-nav-label"
+                                onClick={() => {
+                                    const el = document.getElementById(`unique-group-${title}`);
+                                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}>
+                                {title}
+                            </button>
+                            <span className="fit-bw-today-btn" title={`${monthCount} this month · ${count} total`}
+                                style={{ cursor: 'default', minWidth: 28 }}>
+                                {count}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+    
+            {/* Right: main content */}
+            <div className="fit-unique-layout">
                 <div className="fit-section-header">
                     <h3>Unique Activities</h3>
                     <button className="fit-btn-primary" onClick={() => { setEditing(null); setShowForm(true); }}>
                         <Plus size={13} /> Log Activity
                     </button>
                 </div>
-
+    
                 {showForm && (
                     <div className="fit-form">
                         <div className="fit-form-row">
@@ -812,97 +945,97 @@ function UniqueTab({ activities, setActivities }) {
                         </div>
                     </div>
                 )}
-
-                {/* Year calendar */}
-                <div className="fit-cal-grid-year">
-                    {months.map(month => {
-                        const monthKey = format(month, 'yyyy-MM');
-                        const days = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
-                        const offset = getDay(startOfMonth(month));
-                        const monthCount = activities.filter(a => a.date?.startsWith(monthKey)).length;
-
-                        return (
-                            <div key={monthKey} className="fit-cal-month">
-                                <div className="fit-cal-month-header">
-                                    <span>{format(month, 'MMM')}</span>
-                                    <span className="fit-cal-month-count">{monthCount > 0 ? `${monthCount} activities` : '—'}</span>
+    
+                {groupTitles.length === 0 && !showForm && <p className="fit-empty">No activities logged yet.</p>}
+    
+                {groupTitles.map(title => {
+                    const group = grouped[title].sort((a,b) => b.date.localeCompare(a.date));
+                    const byDate = {};
+                    group.forEach(a => {
+                        if (!byDate[a.date]) byDate[a.date] = [];
+                        byDate[a.date].push(a);
+                    });
+                    const activeDates = Object.keys(byDate).sort();
+                    const now = new Date();
+                    const monthKey = format(now, 'yyyy-MM');
+                    const monthCount = group.filter(a => a.date?.startsWith(monthKey)).length;
+                    const yearCount  = group.filter(a => a.date?.startsWith(String(YEAR))).length;
+                    const totalMins  = group.reduce((a,s) => a + calcMinutes(s.startTime, s.endTime), 0);
+    
+                    return (
+                        <div key={title} id={`unique-group-${title}`} className="fit-unique-group">
+                            <div className="fit-unique-group-header">
+                                <div className="fit-unique-group-title">
+                                    <strong>{title}</strong>
+                                    <span className="fit-tag">{monthCount} this month</span>
+                                    <span className="fit-tag">{yearCount} this year</span>
+                                    {totalMins > 0 && <span className="fit-tag">{fmtMins(totalMins)} total</span>}
                                 </div>
-                                <div className="fit-cal-month-grid">
-                                    {['S','M','T','W','T','F','S'].map((d,i) => <div key={i} className="fit-cal-weekday">{d}</div>)}
-                                    {Array.from({ length: offset }).map((_,i) => <div key={`e${i}`} />)}
-                                    {days.map(day => {
-                                        const ds = format(day, 'yyyy-MM-dd');
-                                        const dayActs = actByDate[ds] || [];
-                                        return (
-                                            <div key={ds}
-                                                className={`fit-cal-day ${dayActs.length ? 'has-session clickable' : ''} ${isToday(day) ? 'today' : ''}`}
-                                                title={dayActs.map(a => a.title).join(', ')}
-                                                onClick={() => dayActs.length && setPopup({ date: ds, sessions: dayActs })}>
-                                                {dayActs.length > 0 && (
-                                                    <span className="fit-unique-label">{dayActs[0].title.slice(0,3)}</span>
-                                                )}
+                                <button className="fit-btn-primary fit-btn-xs"
+                                    onClick={() => { setForm(f => ({ ...f, title })); setEditing(null); setShowForm(true); }}>
+                                    <Plus size={11} />
+                                </button>
+                            </div>
+    
+                            <div className="fit-cal-grid-year">
+                                {months.map(month => {
+                                    const monthKey = format(month, 'yyyy-MM');
+                                    const days = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
+                                    const offset = getDay(startOfMonth(month));
+                                    const mCount = group.filter(a => a.date?.startsWith(monthKey)).length;
+                                    return (
+                                        <div key={monthKey} className="fit-cal-month">
+                                            <div className="fit-cal-month-header">
+                                                <span>{format(month, 'MMM')}</span>
+                                                <span className="fit-cal-month-count">{mCount > 0 ? mCount : '—'}</span>
                                             </div>
-                                        );
-                                    })}
-                                </div>
+                                            <div className="fit-cal-month-grid">
+                                                {['S','M','T','W','T','F','S'].map((d,i) => <div key={i} className="fit-cal-weekday">{d}</div>)}
+                                                {Array.from({ length: offset }).map((_,i) => <div key={`e${i}`} />)}
+                                                {days.map(day => {
+                                                    const ds = format(day, 'yyyy-MM-dd');
+                                                    const dayActs = byDate[ds] || [];
+                                                    const has = dayActs.length > 0;
+                                                    return (
+                                                        <div key={ds}
+                                                            className={`fit-cal-day ${has ? 'has-session' : 'empty-day'} ${isToday(day) ? 'today' : ''}`}
+                                                            style={has ? { background: MODULE_COLORS.unique } : {}}
+                                                            onClick={() => has && setPopup({ date: ds, sessions: dayActs, activeDates, title })}
+                                                            title={fmtDate(ds)}>
+                                                            <span className="fit-day-num" style={has ? { color: 'white' } : {}}>{format(day, 'd')}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        );
-                    })}
-                </div>
-
-                {/* Activity list */}
-                <div className="fit-session-list" style={{ marginTop: 16 }}>
-                    {[...activities].sort((a,b) => b.date.localeCompare(a.date)).map(a => (
-                        <div key={a.id} className="fit-session-row">
-                            <div className="fit-session-main">
-                                <span className="fit-session-date">{fmtDate(a.date)}</span>
-                                <span className="fit-tag">{a.title}</span>
-                                {a.startTime && a.endTime && (
-                                    <span className="fit-session-time">
-                                        {fmt12(a.startTime)} – {fmt12(a.endTime)}
-                                        <span className="fit-session-dur"> ({fmtMins(calcMinutes(a.startTime, a.endTime))})</span>
-                                    </span>
-                                )}
-                                {a.laps && <span className="fit-session-tag">{a.laps} laps</span>}
-                                {a.reps && <span className="fit-session-tag">{a.reps} reps</span>}
-                                {a.sets && <span className="fit-session-tag">{a.sets} sets</span>}
-                            </div>
-                            {a.notes && <div className="fit-session-notes">{a.notes}</div>}
-                            <EllipsisMenu items={[
-                                { label: 'Edit', icon: <Pencil size={12} />, onClick: () => { setEditing(a); setForm({ ...a }); setShowForm(true); } },
-                                { label: 'Delete', icon: <Trash2 size={12} />, danger: true, onClick: () => handleDelete(a.id) },
-                            ]} />
                         </div>
-                    ))}
-                    {activities.length === 0 && <p className="fit-empty">No activities logged yet.</p>}
-                </div>
+                    );
+                })}
             </div>
-
-            {/* Stats panel */}
-            <div className="fit-stats-panel">
-                <div className="fit-stat-total">
-                    <div><span className="fit-stat-big">{activities.length}</span> total</div>
-                </div>
-                <table className="fit-stats-table">
-                    <thead><tr><th>Month</th><th>Count</th><th>Hours</th></tr></thead>
-                    <tbody>
-                        {ALL_MONTHS.map(m => {
-                            const mActs = activities.filter(a => a.date?.startsWith(m));
-                            const mins = mActs.reduce((acc, a) => acc + calcMinutes(a.startTime, a.endTime), 0);
-                            return (
-                                <tr key={m} className={mActs.length === 0 ? 'fit-row-empty' : ''}>
-                                    <td>{monthLabel(m)}</td>
-                                    <td>{mActs.length || '—'}</td>
-                                    <td>{fmtMins(mins)}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-
+    
             {popup && (
-                <DayPopup date={popup.date} sessions={popup.sessions} onClose={() => setPopup(null)} />
+                <DayPopup
+                    date={popup.date}
+                    sessions={popup.sessions}
+                    activeDates={popup.activeDates}
+                    onClose={(next) => {
+                        if (next) {
+                            const byDate = {};
+                            (grouped[popup.title] || []).forEach(a => {
+                                if (!byDate[a.date]) byDate[a.date] = [];
+                                byDate[a.date].push(a);
+                            });
+                            setPopup(p => ({ ...p, date: next, sessions: byDate[next] || [] }));
+                        } else {
+                            setPopup(null);
+                        }
+                    }}
+                    onEdit={(a) => { setEditing(a); setForm({ ...a }); setShowForm(true); }}
+                    onDelete={handleDelete}
+                />
             )}
         </div>
     );
@@ -926,18 +1059,28 @@ function AllTab({ judoSessions, gymSessions, bwLogs, uniqueActivities }) {
     judoSessions.forEach(s => mark(s.date, 'judo', s));
     gymSessions.forEach(s => mark(s.date, 'gym', s));
     uniqueActivities.forEach(a => mark(a.date, 'unique', a));
-    const bwDays = {};
-    bwLogs.forEach(l => {
-        if (!bwDays[l.date]) bwDays[l.date] = [];
-        bwDays[l.date].push(l);
-    });
-    Object.entries(bwDays).forEach(([date, ls]) => mark(date, 'bw', ls));
+    const bwByDate = {};
+    bwLogs.forEach(l => { if (!bwByDate[l.date]) bwByDate[l.date] = []; bwByDate[l.date].push(l); });
+    Object.entries(bwByDate).forEach(([date, ls]) => mark(date, 'bw', ls));
+
+    const activeDates = Object.keys(dayMap).sort();
+
+    const buildPopupSessions = (ds) => {
+        const entry = dayMap[ds];
+        if (!entry) return [];
+        const all = [];
+        if (entry.data.judo)   entry.data.judo.forEach(s => all.push({ ...s, _type: 'Judo' }));
+        if (entry.data.gym)    entry.data.gym.forEach(s =>  all.push({ ...s, _type: 'Gym' }));
+        if (entry.data.unique) entry.data.unique.forEach(s => all.push({ ...s, _type: 'Unique', title: s.title }));
+        if (entry.data.bw)     all.push({ _type: 'Body Weight', value: entry.data.bw.flat().reduce((a,l) => a+l.value, 0), unit: 'total' });
+        return all;
+    };
 
     const statModules = [
-        { key: 'judo',   label: 'Judo',        color: MODULE_COLORS.judo,   sessions: judoSessions,     hasMins: true },
-        { key: 'gym',    label: 'Gym',          color: MODULE_COLORS.gym,    sessions: gymSessions,      hasMins: true },
-        { key: 'bw',     label: 'Body Weight',  color: MODULE_COLORS.bw,     sessions: [],               hasMins: false },
-        { key: 'unique', label: 'Unique',       color: MODULE_COLORS.unique, sessions: uniqueActivities, hasMins: true },
+        { key: 'judo',   label: 'Judo',       color: MODULE_COLORS.judo,   sessions: judoSessions,     hasMins: true },
+        { key: 'gym',    label: 'Gym',         color: MODULE_COLORS.gym,    sessions: gymSessions,      hasMins: true },
+        { key: 'bw',     label: 'Body Weight', color: MODULE_COLORS.bw,     sessions: [],               hasMins: false },
+        { key: 'unique', label: 'Unique',      color: MODULE_COLORS.unique, sessions: uniqueActivities, hasMins: true },
     ];
 
     return (
@@ -955,7 +1098,6 @@ function AllTab({ judoSessions, gymSessions, bwLogs, uniqueActivities }) {
                         const monthKey = format(month, 'yyyy-MM');
                         const days = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
                         const offset = getDay(startOfMonth(month));
-
                         return (
                             <div key={monthKey} className="fit-cal-month">
                                 <div className="fit-cal-month-header">
@@ -971,16 +1113,10 @@ function AllTab({ judoSessions, gymSessions, bwLogs, uniqueActivities }) {
                                         const hasAny = types.length > 0;
                                         return (
                                             <div key={ds}
-                                                className={`fit-cal-day fit-all-day ${isToday(day) ? 'today' : ''} ${hasAny ? 'clickable' : ''}`}
-                                                onClick={() => {
-                                                    if (!hasAny) return;
-                                                    const allSessions = [];
-                                                    if (entry.data.judo) entry.data.judo.forEach(s => allSessions.push({ ...s, _type: 'Judo' }));
-                                                    if (entry.data.gym)  entry.data.gym.forEach(s =>  allSessions.push({ ...s, _type: 'Gym' }));
-                                                    if (entry.data.unique) entry.data.unique.forEach(s => allSessions.push({ ...s, _type: 'Unique' }));
-                                                    if (entry.data.bw) allSessions.push({ _type: 'Body Weight', value: entry.data.bw.flat().reduce((a,l) => a+l.value, 0) });
-                                                    setPopup({ date: ds, sessions: allSessions });
-                                                }}>
+                                                className={`fit-cal-day fit-all-day ${isToday(day) ? 'today' : ''} ${hasAny ? '' : 'empty-day'}`}
+                                                onClick={() => hasAny && setPopup({ date: ds, sessions: buildPopupSessions(ds) })}
+                                                title={fmtDate(ds)}>
+                                                <span className="fit-day-num">{format(day, 'd')}</span>
                                                 <div className="fit-all-day-dots">
                                                     {['judo','gym','bw','unique'].map(type => (
                                                         <span key={type} className="fit-all-dot"
@@ -1000,11 +1136,9 @@ function AllTab({ judoSessions, gymSessions, bwLogs, uniqueActivities }) {
             <div className="fit-all-stats">
                 {statModules.map(m => {
                     const totalDays = m.key === 'bw'
-                        ? Object.keys(bwDays).filter(d => d.startsWith(String(YEAR))).length
+                        ? new Set(bwLogs.filter(l => l.date?.startsWith(String(YEAR))).map(l => l.date)).size
                         : new Set(m.sessions.filter(s => s.date?.startsWith(String(YEAR))).map(s => s.date)).size;
-                    const totalMins = m.hasMins
-                        ? m.sessions.reduce((a,s) => a + calcMinutes(s.startTime, s.endTime), 0) : 0;
-
+                    const totalMins = m.hasMins ? m.sessions.reduce((a,s) => a + calcMinutes(s.startTime, s.endTime), 0) : 0;
                     return (
                         <div key={m.key} className="fit-all-stat-card" style={{ borderLeftColor: m.color }}>
                             <div className="fit-all-stat-title" style={{ color: m.color }}>{m.label}</div>
@@ -1039,7 +1173,15 @@ function AllTab({ judoSessions, gymSessions, bwLogs, uniqueActivities }) {
             </div>
 
             {popup && (
-                <DayPopup date={popup.date} sessions={popup.sessions} onClose={() => setPopup(null)} />
+                <DayPopup
+                    date={popup.date}
+                    sessions={popup.sessions}
+                    activeDates={activeDates}
+                    onClose={(next) => {
+                        if (next) setPopup({ date: next, sessions: buildPopupSessions(next) });
+                        else setPopup(null);
+                    }}
+                />
             )}
         </div>
     );
@@ -1074,7 +1216,6 @@ function Fitness() {
     }, []);
 
     const TABS = ['judo', 'gym', 'bodyweight', 'unique', 'all'];
-
     if (loading) return <div className="fit-loading">Loading…</div>;
 
     return (
@@ -1089,7 +1230,6 @@ function Fitness() {
                     ))}
                 </div>
             </div>
-
             {tab === 'judo'       && <JudoTab sessions={judoSessions} setSessions={setJudoSessions} />}
             {tab === 'gym'        && <GymTab  sessions={gymSessions}  setSessions={setGymSessions} />}
             {tab === 'bodyweight' && <BodyWeightTab activities={bwActivities} setActivities={setBwActivities} logs={bwLogs} setLogs={setBwLogs} />}
