@@ -73,18 +73,23 @@
 }
 
 .module-fitness {
-    --color-text: #E2F8FB;
-    --color-text-secondary: #A5D8E0;
-    --color-text-tertiary: #6BAEBB;
+    --color-bg: #F8FAFC;
+    --color-bg-secondary: #FFFFFF;
+    --color-bg-tertiary: #F1F5F9;
 
-    --color-primary: #06B6D4;
-    --color-primary-light: #22D3EE;
-    --color-primary-dark: #0E7490;
-    --color-secondary: #155E75;
-    --color-accent: #00FFFF;
-    --color-bg: #0A0F0F;
-    --color-bg-secondary: #0F1A1A;
-    --color-bg-tertiary: #132525;
+    --color-text: #0F172A;
+    --color-text-secondary: #475569;
+    --color-text-tertiary: #94A3B8;
+
+    --color-primary: #0891B2;
+    --color-primary-light: #CFFAFE;
+    --color-primary-dark: #155E75;
+ 
+    --color-secondary: #E2E8F0;
+    --color-accent: #06B6D4;
+
+    --color-success: #22C55E;
+    --color-border: #E2E8F0;
 }
 
 .module-hobbies {
