@@ -306,7 +306,7 @@ function Weight() {
 
     if (view === 'goals') {
         return (
-            <div className="weight-view">
+            <div className="weight-view module-weight">
                 <header className="weight-header">
                     <h1>Weight Tracker</h1>
                     <button onClick={() => setIsCreating('true')}>+ New Goal</button>

@@ -114,14 +114,13 @@
 }
 
 .module-sleep {
-    --color-primary: #4F46E5;
-    --color-primary-light: #818CF8;
-    --color-primary-dark: #1E1B4B;
-    --color-secondary: #C7D2FE;
-    --color-accent: #EEF2FF;
-    --color-bg: #EEF2FF;
-    --color-bg-secondary: #E0E7FF;
-    --color-bg-tertiary: #C7D2FE;
+    --color-primary: #9A86E0;
+    --color-primary-light: #B7A8EA;
+    --color-primary-dark: #3D355C;
+    --color-secondary: #D9D2F5;
+    --color-accent: #F5F3FF;
+    --color-bg-secondary: #F0EDFF;
+    --color-bg-tertiary: #E5E0FF;
 }
 
 .module-weight {

@@ -110,7 +110,7 @@ const SleepInputModal = ({ date, existingEntry, onSave, onDelete, onClose }) => 
                             value={notes}
                             onChange={e => setNotes(e.target.value)}
                             placeholder="How was sleep?"
-                            rows={15} // Adjusted from 10 to 6 to save vertical space
+                            rows={3} // Adjusted from 10 to 6 to save vertical space
                         />
                     </div>
 
