@@ -34,15 +34,11 @@ const isScheduledToday = (chore) => {
     const today = new Date().toISOString().split('T')[0];
 
     if (!chore.repeating) {
-        // One-time task: show if created today or completed today
         return chore.createdDate === today || chore.completionHistory?.includes(today);
     }
 
-    // Repeating task: show if today's day label is in scheduledDays
-    // e.g. a Weekly/Friday chore shows on every Friday, including today
     if (chore.scheduledDays?.includes(TODAY_LABEL)) return true;
 
-    // Edge case: repeating chore with NO days selected — fall back to never show in Today
     return false;
 };
 
@@ -69,7 +65,7 @@ function Stopwatch() {
     const s = elapsed % 60;
     const display = h > 0
         ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-        : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '00')}`;
 
     return (
         <div className="stopwatch">
@@ -101,8 +97,8 @@ function Chores() {
     const [editingTypeId, setEditingTypeId] = useState(null);
     const [typeRenameInput, setTypeRenameInput] = useState('');
     const [showTypeManager, setShowTypeManager] = useState(false);
-    const [viewMode, setViewMode] = useState('list');      // 'list' | 'calendar'
-    const [dashView, setDashView] = useState('Today');     // 'Today' | 'Daily' | 'Weekly' | 'Monthly'
+    const [viewMode, setViewMode] = useState('list');
+    const [dashView, setDashView] = useState('Today');
     const [selectedDate, setSelectedDate] = useState(null);
     const [activeMenu, setActiveMenu] = useState(null);
 
@@ -115,7 +111,6 @@ function Chores() {
                 storage.getChoreTypes(),
             ]);
     
-            // Sanitize: ensure no object bleeds into primitive fields
             const cleanChores = choreData.map(c => ({
                 ...c,
                 typeId: typeof c.typeId === 'object' ? (c.typeId?.id ?? '') : (c.typeId ?? ''),
@@ -128,7 +123,7 @@ function Chores() {
                 ...t,
                 id: typeof t.id === 'object' ? JSON.stringify(t.id) : String(t.id ?? ''),
                 name: typeof t.name === 'object' ? '' : (t.name ?? ''),
-            }));
+            })).filter(t => t.name.trim() !== '');
     
             setChores(cleanChores);
             setChoreTypes(cleanTypes);
@@ -182,16 +177,13 @@ function Chores() {
 
     const visibleChores = getChoresForView(dashView);
 
-    // Today sub-groups
     const todayOnce      = dashView === 'Today' ? visibleChores.filter(c => !c.repeating) : [];
     const todayRepeating = dashView === 'Today' ? visibleChores.filter(c => c.repeating)  : [];
 
-    // Progress bar always reflects today
     const todayChores = chores.filter(isScheduledToday);
     const todayDone   = todayChores.filter(c => c.done).length;
     const progressPct = todayChores.length === 0 ? 0 : Math.round((todayDone / todayChores.length) * 100);
 
-    // Tab badge counts
     const tabCounts = {
         Today:   chores.filter(isScheduledToday).length,
         Daily:   chores.filter(c => c.repeating && c.routine === 'Daily').length,
@@ -227,9 +219,9 @@ function Chores() {
     // ─── HANDLERS ──────────────────────────────────────────
 
     const handleToggleDone = async (chore) => {
-        const now       = new Date().toISOString();
-        const dateOnly  = now.split('T')[0];
-        const history   = chore.completionHistory || [];
+        const now        = new Date().toISOString();
+        const dateOnly   = now.split('T')[0];
+        const history    = chore.completionHistory || [];
         const isChecking = !chore.done;
         const updatedHistory = isChecking
             ? [...new Set([...history, dateOnly])]
@@ -286,7 +278,6 @@ function Chores() {
     const handleAddType = async () => {
         if (!newTypeName.trim()) return;
         const result = await storage.addChoreType({ name: newTypeName.trim() });
-        // Guard: some storage impls return the whole object, others return just the id
         const id = typeof result === 'object' ? (result?.id ?? result) : result;
         setChoreTypes([...choreTypes, { id: String(id), name: newTypeName.trim() }]);
         setNewTypeName('');
@@ -306,27 +297,19 @@ function Chores() {
         setTypeRenameInput('');
     };
 
-    // Pre-fill form based on active tab so the new chore lands in the right place
     const openNewForm = () => {
         const presets = {
             Today:   { repeating: false, routine: 'Daily' },
             Daily:   { repeating: true,  routine: 'Daily' },
             Weekly:  { repeating: true,  routine: 'Weekly' },
             Monthly: { repeating: true,  routine: 'Monthly' },
-            All:     { repeating: false, routine: 'Daily' } // <--- Add this line!
+            All:     { repeating: false, routine: 'Daily' },
         };
-    
-        // Use the preset based on the current tab, or fall back to emptyChore
-        const activePreset = presets[dashView] || emptyChore;
-    
-        setForm({ 
-            ...emptyChore, 
-            ...activePreset 
-        });
-        
+        setForm({ ...emptyChore, ...(presets[dashView] || {}) });
         setEditingChore(null);
         setShowForm(true);
     };
+
     const openEditForm = (chore) => { setForm({ ...chore }); setEditingChore(chore); setShowForm(true); };
     const closeForm    = () => { setShowForm(false); setEditingChore(null); setForm(emptyChore); };
 
@@ -338,26 +321,23 @@ function Chores() {
     };
 
     // ─── CHORE CARD ────────────────────────────────────────
+    // grid: checkbox | name+meta | ellipsis | order-buttons
 
-    const renderChoreCard = (chore, list) => {
-        const idx = list.findIndex(c => c.id === chore.id);
+    const renderChoreCard = (chore, list, showType = false) => {
+        const idx      = list.findIndex(c => c.id === chore.id);
+        const typeName = showType ? choreTypes.find(t => t.id === chore.typeId)?.name : null;
         return (
             <div key={chore.id} className={`chore-card ${chore.done ? 'done' : ''}`}>
-                <div className="order-buttons">
-                    <button className="order-btn" onClick={() => moveChore(chore, -1, list)} disabled={idx === 0} title="Move up">▲</button>
-                    <button className="order-btn" onClick={() => moveChore(chore, 1, list)} disabled={idx === list.length - 1} title="Move down">▼</button>
-                </div>
+                <input type="checkbox" checked={chore.done} onChange={() => handleToggleDone(chore)} />
 
                 <div className="chore-left">
-                    <input type="checkbox" checked={chore.done} onChange={() => handleToggleDone(chore)} />
-                    <div>
-                        <div className="chore-name">{chore.name}</div>
-                        <div className="chore-meta">
-                            {chore.lastCompleted && <span>Last: {daysSince(chore.lastCompleted)}</span>}
-                            {chore.repeating && chore.scheduledDays?.length > 0 && (
-                                <span className="chore-days">{chore.scheduledDays.join(' · ')}</span>
-                            )}
-                        </div>
+                    <div className="chore-name">{chore.name}</div>
+                    <div className="chore-meta">
+                        {typeName && <span className="chore-type-label">{typeName}</span>}
+                        {chore.lastCompleted && <span>Last: {daysSince(chore.lastCompleted)}</span>}
+                        {chore.repeating && chore.scheduledDays?.length > 0 && (
+                            <span className="chore-days">{chore.scheduledDays.join(' · ')}</span>
+                        )}
                     </div>
                 </div>
 
@@ -370,6 +350,47 @@ function Chores() {
                         </div>
                     )}
                 </div>
+
+                <div className="order-buttons">
+                    <button className="order-btn" onClick={() => moveChore(chore, -1, list)} disabled={idx === 0} title="Move up">▲</button>
+                    <button className="order-btn" onClick={() => moveChore(chore, 1, list)} disabled={idx === list.length - 1} title="Move down">▼</button>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── ALL VIEW (grouped by type) ────────────────────────
+
+    const renderAllView = () => {
+        const allSorted = getChoresForView('All');
+
+        // Build ordered type groups: known types first, then "No Type"
+        const typeGroups = [
+            ...choreTypes.map(t => ({
+                id: t.id,
+                name: t.name,
+                chores: allSorted.filter(c => c.typeId === t.id),
+            })),
+            {
+                id: '__none__',
+                name: 'No Type',
+                chores: allSorted.filter(c => !c.typeId || !choreTypes.find(t => t.id === c.typeId)),
+            },
+        ].filter(g => g.chores.length > 0);
+
+        if (typeGroups.length === 0) return <div className="empty-state"><p>No chores yet.</p></div>;
+
+        return (
+            <div>
+                {typeGroups.map(group => (
+                    <div key={group.id} className="type-group">
+                        <div className="type-group-header">
+                            <h3>{group.name}</h3>
+                            <span className="type-group-count">{group.chores.length}</span>
+                        </div>
+                        {group.chores.map(chore => renderChoreCard(chore, group.chores))}
+                    </div>
+                ))}
             </div>
         );
     };
@@ -457,11 +478,12 @@ function Chores() {
     if (loading) return <div className="loading">Loading...</div>;
 
     return (
-        <div className="chores-view module-chores">
+        <div className="chores-view">
+        <div className="module-chores">
             {/* HEADER */}
             <div className="chores-header">
                 <h1>Chores</h1>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="chores-header-actions">
                     <button className="view-toggle" onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}>
                         {viewMode === 'list' ? 'Year View' : 'List View'}
                     </button>
@@ -510,23 +532,23 @@ function Chores() {
                             {todayOnce.length > 0 && (
                                 <div className="routine-group">
                                     <div className="routine-header"><h3>One-time tasks</h3></div>
-                                    {todayOnce.map(chore => renderChoreCard(chore, todayOnce))}
+                                    {todayOnce.map(chore => renderChoreCard(chore, todayOnce, true))}
                                 </div>
                             )}
                             {todayRepeating.length > 0 && (
                                 <div className="routine-group">
                                     <div className="routine-header"><h3>Recurring</h3></div>
-                                    {todayRepeating.map(chore => renderChoreCard(chore, todayRepeating))}
+                                    {todayRepeating.map(chore => renderChoreCard(chore, todayRepeating, true))}
                                 </div>
                             )}
                             {visibleChores.length === 0 && (
                                 <div className="empty-state"><p>Nothing scheduled for today 🎉</p></div>
                             )}
                         </>
-                    ) : (
+                    ) : dashView === 'All' ? renderAllView() : (
                         <>
                             {visibleChores.length > 0
-                                ? visibleChores.map(chore => renderChoreCard(chore, visibleChores))
+                                ? visibleChores.map(chore => renderChoreCard(chore, visibleChores, true))
                                 : <div className="empty-state"><p>No {dashView.toLowerCase()} chores yet.</p></div>
                             }
                         </>
@@ -578,7 +600,6 @@ function Chores() {
                             onChange={e => setForm({ ...form, name: e.target.value })}
                             autoFocus
                         />
-
                         <div className="repeat-toggle-row">
                             <span>Repeating task?</span>
                             <button
@@ -588,7 +609,6 @@ function Chores() {
                                 {form.repeating ? 'Yes' : 'No — just today'}
                             </button>
                         </div>
-
                         {form.repeating && (
                             <>
                                 <select value={form.routine} onChange={e => setForm({ ...form, routine: e.target.value })}>
@@ -607,12 +627,10 @@ function Chores() {
                                 </div>
                             </>
                         )}
-
                         <select value={form.typeId} onChange={e => setForm({ ...form, typeId: e.target.value })}>
                             <option value="">No Type</option>
                             {choreTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                         </select>
-
                         <div className="chore-form-actions">
                             <button className="save-btn" onClick={handleSave}>Save</button>
                             <button onClick={closeForm}>Cancel</button>
@@ -623,6 +641,7 @@ function Chores() {
 
             {/* FAB */}
             <button className="fab-add" onClick={(e) => { e.stopPropagation(); openNewForm(); }} title="Add new chore">+</button>
+            </div>
         </div>
     );
 }
