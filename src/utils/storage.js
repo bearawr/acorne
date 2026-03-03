@@ -354,8 +354,184 @@ export const storage = {
         }
     },
 
-    // ─── PLACEHOLDERS (ready to fill in later) ───────────────
+        // ─── FITNESS: JUDO ────────────────────────────────────────
+
+    getJudoSessions: async () => {
+        try {
+            const ref = userCollection('fitnessJudo');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) { console.error(error); return []; }
+    },
+    addJudoSession: async (session) => {
+        try {
+            const ref = userCollection('fitnessJudo');
+            const docRef = await addDoc(ref, session);
+            return docRef.id;
+        } catch (error) { console.error(error); return null; }
+    },
+    updateJudoSession: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'fitnessJudo', id), updates);
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+    deleteJudoSession: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'fitnessJudo', id));
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+
+    // ─── FITNESS: GYM ─────────────────────────────────────────
+
+    getGymSessions: async () => {
+        try {
+            const ref = userCollection('fitnessGym');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) { console.error(error); return []; }
+    },
+    addGymSession: async (session) => {
+        try {
+            const ref = userCollection('fitnessGym');
+            const docRef = await addDoc(ref, session);
+            return docRef.id;
+        } catch (error) { console.error(error); return null; }
+    },
+    updateGymSession: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'fitnessGym', id), updates);
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+    deleteGymSession: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'fitnessGym', id));
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+
+    // ─── FITNESS: BODY WEIGHT ACTIVITY DEFINITIONS ────────────
+
+    getBWActivities: async () => {
+        try {
+            const ref = userCollection('fitnessBWActivities');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) { console.error(error); return []; }
+    },
+    addBWActivity: async (activity) => {
+        // shape: { name, trackType: 'reps'|'duration', unit: 'reps'|'seconds'|'minutes', goals: { daily, weekly, monthly, yearly } }
+        try {
+            const ref = userCollection('fitnessBWActivities');
+            const docRef = await addDoc(ref, activity);
+            return docRef.id;
+        } catch (error) { console.error(error); return null; }
+    },
+    updateBWActivity: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'fitnessBWActivities', id), updates);
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+    deleteBWActivity: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'fitnessBWActivities', id));
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+
+    // ─── FITNESS: BODY WEIGHT LOGS ────────────────────────────
+
+    getBWLogs: async () => {
+        try {
+            const ref = userCollection('fitnessBWLogs');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) { console.error(error); return []; }
+    },
+    addBWLog: async (log) => {
+        // shape: { activityId, date: 'yyyy-MM-dd', value: number, note: string }
+        try {
+            const ref = userCollection('fitnessBWLogs');
+            const docRef = await addDoc(ref, log);
+            return docRef.id;
+        } catch (error) { console.error(error); return null; }
+    },
+    updateBWLog: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'fitnessBWLogs', id), updates);
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+    deleteBWLog: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'fitnessBWLogs', id));
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+
+    // ─── FITNESS: UNIQUE ACTIVITIES ───────────────────────────
+
+    getUniqueActivities: async () => {
+        try {
+            const ref = userCollection('fitnessUnique');
+            const snapshot = await getDocs(ref);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) { console.error(error); return []; }
+    },
+    addUniqueActivity: async (activity) => {
+        // shape: { title, date, startTime, endTime, laps, reps, sets, notes }
+        try {
+            const ref = userCollection('fitnessUnique');
+            const docRef = await addDoc(ref, activity);
+            return docRef.id;
+        } catch (error) { console.error(error); return null; }
+    },
+    updateUniqueActivity: async (id, updates) => {
+        try {
+            const uid = getUserId();
+            await updateDoc(doc(db, 'users', uid, 'fitnessUnique', id), updates);
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+    deleteUniqueActivity: async (id) => {
+        try {
+            const uid = getUserId();
+            await deleteDoc(doc(db, 'users', uid, 'fitnessUnique', id));
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+
+    // Unique activity title tags (for dropdown)
+    getUniqueTags: async () => {
+        try {
+            const uid = getUserId();
+            const snap = await getDocs(collection(db, 'users', uid, 'fitnessMeta'));
+            const found = snap.docs.find(d => d.id === 'uniqueTags');
+            return found ? found.data().tags : [];
+        } catch (error) { console.error(error); return []; }
+    },
+    saveUniqueTags: async (tags) => {
+        try {
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid, 'fitnessMeta', 'uniqueTags'), { tags });
+            return true;
+        } catch (error) { console.error(error); return false; }
+    },
+
     getFitnessData: async () => [],
+
+    // ─── PLACEHOLDERS (ready to fill in later) ───────────────
     getHobbiesData: async () => [],
     getOverviewData: async() => [],
 };
