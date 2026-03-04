@@ -53,7 +53,7 @@ function App() {
             case 'chores': return <Chores />;
             case 'school': return <School />;
             case 'hobbies': return <Hobbies />;
-            case 'overview': return <Overview />;
+            case 'overview': return <Overview onNavigate={setCurrentView} />;
             default: return <Sleep />;
         }
     };
