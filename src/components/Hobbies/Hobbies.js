@@ -4,7 +4,9 @@ import {
     format, parseISO, isToday, startOfMonth, endOfMonth,
     eachDayOfInterval, getDay, eachMonthOfInterval
 } from 'date-fns';
-import { Plus, Pencil, Trash2, X, MoreVertical, ChevronLeft, ChevronRight, BookOpen, Mail, NotebookPen, Palette, Music2, Code2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, MoreVertical, ChevronLeft, ChevronRight, BookOpen, Mail, NotebookPen, Palette, Music2, Code2,
+        SendHorizontal, Mailbox, BookCheck
+} from 'lucide-react';
 import './Hobbies.css';
 
 // ─── HELPERS ──────────────────────────────────────────────
@@ -63,8 +65,23 @@ function EllipsisMenu({ items }) {
 
 // ─── SHARED: YEAR CALENDAR (ticker) ───────────────────────
 
-function YearCalendar({ entries, accentColor = '#6366f1', onDayClick, buildPopup }) {
+function YearCalendar({ 
+    entries, 
+    accentColor = '#6366f1', 
+    onDayClick,        // called when empty day is clicked (for tick)
+    buildPopup,        // builds popup sessions for active days
+    getEntryIcon,      // (entry) => JSX icon — optional
+    getEntryColor,     // (entries[]) => string color — optional
+    singleEntryPerDay, // if true, clicking ticked day opens inline modal
+    onTickDelete,      // (id) => void — for inline modal delete
+    onTickNotesChange, // (id, notes) => void — auto-save notes
+    instruments,
+}) {
     const [popup, setPopup] = useState(null);
+    const [inlineModal, setInlineModal] = useState(null); // { date, entry }
+    const [inlineNotes, setInlineNotes] = useState('');
+    const notesTimer = useRef(null);
+
     const year = new Date().getFullYear();
     const months = eachMonthOfInterval({ start: new Date(year, 0, 1), end: new Date(year, 11, 31) });
 
@@ -76,10 +93,29 @@ function YearCalendar({ entries, accentColor = '#6366f1', onDayClick, buildPopup
     });
     const activeDates = Object.keys(byDate).sort();
 
-    const handleClick = (ds) => {
-        if (!byDate[ds]) return;
-        if (buildPopup) setPopup({ date: ds, sessions: buildPopup(byDate[ds]), activeDates });
-        else if (onDayClick) onDayClick(ds, byDate[ds]);
+    const handleDayClick = (ds) => {
+        const dayEntries = byDate[ds] || [];
+        if (dayEntries.length === 0) {
+            // Empty day — tick it
+            if (onDayClick) onDayClick(ds);
+        } else if (singleEntryPerDay) {
+            // Already ticked — open inline modal
+            setInlineNotes(dayEntries[0].notes || '');
+            setInlineModal({ date: ds, entry: dayEntries[0] });
+        } else if (buildPopup) {
+            // Multi-entry day — open popup
+            setPopup({ date: ds, sessions: buildPopup(dayEntries), activeDates });
+        }
+    };
+
+    const handleNotesChange = (val) => {
+        setInlineNotes(val);
+        if (notesTimer.current) clearTimeout(notesTimer.current);
+        notesTimer.current = setTimeout(() => {
+            if (onTickNotesChange && inlineModal?.entry?.id) {
+                onTickNotesChange(inlineModal.entry.id, val);
+            }
+        }, 600);
     };
 
     const navigateTo = (newDate) => {
@@ -109,15 +145,26 @@ function YearCalendar({ entries, accentColor = '#6366f1', onDayClick, buildPopup
                                 {Array.from({ length: offset }).map((_,i) => <div key={`e${i}`} />)}
                                 {days.map(day => {
                                     const ds = format(day, 'yyyy-MM-dd');
-                                    const has = !!byDate[ds];
+                                    const dayEntries = byDate[ds] || [];
+                                    const has = dayEntries.length > 0;
+                                    const cellColor = has
+                                        ? (getEntryColor ? getEntryColor(dayEntries) : accentColor)
+                                        : null;
+                                    const icon = has && getEntryIcon ? getEntryIcon(dayEntries[0]) : null;
+                                    const isFuture = ds > getTodayStr();
+
                                     return (
                                         <div key={ds}
-                                            className={`hob-cal-day ${has ? 'has-entry' : 'empty-day'} ${isToday(day) ? 'today' : ''}`}
-                                            style={has ? { background: accentColor } : {}}
-                                            onClick={() => handleClick(ds)}
+                                            className={`hob-cal-day ${has ? 'has-entry' : 'empty-day'} ${isToday(day) ? 'today' : ''} ${isFuture ? 'future-day' : ''}`}
+                                            style={has ? { background: cellColor } : {}}
+                                            onClick={() => !isFuture && handleDayClick(ds)}
                                             title={fmtDate(ds)}>
-                                            <span className="hob-day-num">{format(day, 'd')}</span>
-                                            {has && <span className="hob-cal-check">✓</span>}
+                                            <span className="hob-day-num" style={has ? { color: 'rgba(255,255,255,0.85)' } : {}}>{format(day, 'd')}</span>
+                                            {has && (
+                                                icon
+                                                    ? <span className="hob-cal-icon">{icon}</span>
+                                                    : <span className="hob-cal-check">✓</span>
+                                            )}
                                         </div>
                                     );
                                 })}
@@ -127,6 +174,7 @@ function YearCalendar({ entries, accentColor = '#6366f1', onDayClick, buildPopup
                 })}
             </div>
 
+            {/* Popup for multi-entry days */}
             {popup && buildPopup && (
                 <DayPopup
                     date={popup.date}
@@ -137,6 +185,48 @@ function YearCalendar({ entries, accentColor = '#6366f1', onDayClick, buildPopup
                         else setPopup(null);
                     }}
                 />
+            )}
+
+            {/* Inline modal for single-entry-per-day ticked days */}
+            {inlineModal && (
+                <div className="form-overlay" onClick={() => setInlineModal(null)}>
+                    <div className="cal-detail-modal hob-day-modal" onClick={e => e.stopPropagation()}>
+                        <div className="cal-detail-header">
+                            <span className="cal-detail-type-badge">{fmtDate(inlineModal.date)}</span>
+                            <button className="form-close-btn" onClick={() => setInlineModal(null)}><X size={14} /></button>
+                        </div>
+                        <div className="hob-inline-modal-body">
+                            {inlineModal.entry.instrument && (
+                                <div className="hob-popup-row">
+                                    <span className="hob-tag" style={{ background: instruments?.find(i => (i.name||i) === inlineModal.entry.instrument)?.color || '#f59e0b', color: 'white' }}>
+                                        {inlineModal.entry.instrument}
+                                    </span>
+                                </div>
+                            )}
+                            {inlineModal.entry.subject && (
+                                <div className="hob-popup-row" style={{ marginBottom: 4 }}>
+                                    <strong>{inlineModal.entry.subject}</strong>
+                                </div>
+                            )}
+                            <textarea
+                                placeholder="Notes (auto-saves)…"
+                                value={inlineNotes}
+                                onChange={e => handleNotesChange(e.target.value)}
+                                rows={3}
+                                autoFocus
+                            />
+                        </div>
+                        <div className="hob-form-actions" style={{ marginTop: 8 }}>
+                            <button className="hob-btn" style={{ color: 'var(--color-error)', borderColor: 'var(--color-error)' }}
+                                onClick={() => {
+                                    if (onTickDelete) onTickDelete(inlineModal.entry.id);
+                                    setInlineModal(null);
+                                }}>
+                                <Trash2 size={12} /> Delete entry
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );
@@ -317,7 +407,16 @@ function ReadingTab({ books, setBooks }) {
                     </div>
                 )}
 
-                <YearCalendar entries={calEntries} accentColor="#8b5cf6" buildPopup={buildPopup} />
+                <YearCalendar
+                    entries={calEntries}
+                    accentColor="#8b5cf6"
+                    buildPopup={buildPopup}
+                    getEntryIcon={(entry) => {
+                        if (entry.status === 'Completed' && entry.date === entry.dateFinished?.slice(0,10))
+                            return <BookCheck size={7} color="white" />;
+                        return <BookOpen size={7} color="white" />;
+                    }}
+                />
 
                 {[{ label: 'Currently Reading', list: reading }, { label: 'To Read', list: tbr }, { label: 'Completed', list: completed }].map(({ label, list }) =>
                     list.length > 0 && (
@@ -503,7 +602,16 @@ function LetterTab({ letters, setLetters, penpals, setPenpals }) {
                             </div>
                         )}
 
-                        <YearCalendar entries={calEntries} accentColor="#ec4899" buildPopup={buildPopup} />
+                        <YearCalendar
+                            entries={calEntries}
+                            accentColor="#ec4899"
+                            buildPopup={buildPopup}
+                            getEntryIcon={(entry) =>
+                                entry._calType === 'sent'
+                                    ? <SendHorizontal size={7} color="white" />
+                                    : <Mailbox size={7} color="white" />
+                            }
+                        />
 
                         {[{ label: 'Sent', list: sentLetters }, { label: 'Received', list: receivedLetters }].map(({ label, list }) =>
                             list.length > 0 && (
@@ -585,8 +693,8 @@ function LetterTab({ letters, setLetters, penpals, setPenpals }) {
                                     <div key={p.id} className="hob-penpal-card" onClick={() => setPenpalModal(p)}>
                                         <div className="hob-penpal-name">{p.name}</div>
                                         <div className="hob-penpal-counts">
-                                            <span>✉ {counts.sent} sent</span>
-                                            <span>📬 {counts.received} received</span>
+                                            <span>< SendHorizontal size={12} /> {counts.sent} sent</span>
+                                            <span>< Mailbox size={12} /> {counts.received} received</span>
                                         </div>
                                         {(p.addresses||[]).filter(Boolean).length > 0 && (
                                             <div className="hob-penpal-addr">{p.addresses[0]}</div>
@@ -720,9 +828,9 @@ function SimpleTickerTab({ entries, setEntries, storageAdd, storageUpdate, stora
             <div className="hob-tab-main">
                 <div className="hob-section-header">
                     <h3>{label}</h3>
-                    <button className="hob-btn-primary" onClick={() => { setForm(emptyForm); setEditing(null); setShowForm(true); }}>
+                    {/* <button className="hob-btn-primary" onClick={() => { setForm(emptyForm); setEditing(null); setShowForm(true); }}>
                         <Plus size={13} /> Log Entry
-                    </button>
+                    </button> */}
                 </div>
 
                 {showForm && (
@@ -739,7 +847,28 @@ function SimpleTickerTab({ entries, setEntries, storageAdd, storageUpdate, stora
                     </div>
                 )}
 
-                <YearCalendar entries={entries} accentColor={accentColor} buildPopup={buildPopup} />
+                <YearCalendar
+                    entries={entries}
+                    accentColor={accentColor}
+                    buildPopup={buildPopup}
+                    singleEntryPerDay
+                    onDayClick={async (ds) => {
+                        // Only log if no entry exists for that day
+                        const exists = entries.find(e => e.date === ds);
+                        if (exists) return;
+                        const newEntry = { date: ds, notes: '' };
+                        const id = await storageAdd(newEntry);
+                        setEntries(e => [...e, { ...newEntry, id }]);
+                    }}
+                    onTickDelete={async (id) => {
+                        await storageDelete(id);
+                        setEntries(e => e.filter(x => x.id !== id));
+                    }}
+                    onTickNotesChange={async (id, notes) => {
+                        await storageUpdate(id, { notes });
+                        setEntries(e => e.map(x => x.id === id ? { ...x, notes } : x));
+                    }}
+                />
             </div>
             <YearStats entries={entries} label="entries"
                 extraStats={
@@ -756,7 +885,10 @@ function SimpleTickerTab({ entries, setEntries, storageAdd, storageUpdate, stora
 // ─── TAB: MUSIC ───────────────────────────────────────────
 
 function MusicTab({ entries, setEntries }) {
-    const [instruments, setInstruments] = useState(['Piano', 'Guitar']);
+    const [instruments, setInstruments] = useState([
+        { name: 'Piano', color: '#303030' },
+        { name: 'Guitar', color: '#915519' },
+    ]);
     const [showInstrumentForm, setShowInstrumentForm] = useState(false);
     const [newInstrument, setNewInstrument] = useState('');
     const [showForm, setShowForm] = useState(false);
@@ -764,15 +896,18 @@ function MusicTab({ entries, setEntries }) {
     const emptyForm = { date: getTodayStr(), instrument: 'Piano', notes: '' };
     const [form, setForm] = useState(emptyForm);
     const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+    const [instrPopover, setInstrPopover] = useState(null); // { date }
+    const [newInstrColor, setNewInstrColor] = useState('#f59e0b');
 
     useEffect(() => { storage.getMusicInstruments().then(setInstruments); }, []);
 
     const handleAddInstrument = async () => {
-        if (!newInstrument.trim() || instruments.includes(newInstrument.trim())) return;
-        const updated = [...instruments, newInstrument.trim()];
+        if (!newInstrument.trim()) return;
+        if (instruments.find(i => i.name === newInstrument.trim())) return;
+        const updated = [...instruments, { name: newInstrument.trim(), color: newInstrColor }];
         setInstruments(updated);
         await storage.saveMusicInstruments(updated);
-        setNewInstrument(''); setShowInstrumentForm(false);
+        setNewInstrument(''); setNewInstrColor('#f59e0b'); setShowInstrumentForm(false);
     };
 
     const handleSave = async () => {
@@ -794,14 +929,15 @@ function MusicTab({ entries, setEntries }) {
     };
 
     // Per-instrument stats
-    const instrStats = instruments.map(inst => {
-        const instEntries = entries.filter(e => e.instrument === inst);
+    const instrStats = instruments.map(instr => {
+        const name = instr.name || instr;
+        const instEntries = entries.filter(e => e.instrument === name);
         const monthKey = format(new Date(), 'yyyy-MM');
         return {
-            name: inst,
+            name,
+            color: instr.color || '#f59e0b',
             month: instEntries.filter(e => e.date?.startsWith(monthKey)).length,
             year:  instEntries.filter(e => e.date?.startsWith(String(YEAR))).length,
-            total: instEntries.length,
         };
     });
 
@@ -833,11 +969,16 @@ function MusicTab({ entries, setEntries }) {
                 </div>
 
                 {showInstrumentForm && (
-                    <div className="hob-form" style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+                    <div className="hob-form" style={{ flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                         <label style={{ flex: 1 }}>New Instrument
                             <input value={newInstrument} onChange={e => setNewInstrument(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleAddInstrument()}
                                 placeholder="e.g. Violin" autoFocus />
+                        </label>
+                        <label>Color
+                            <input type="color" value={newInstrColor}
+                                onChange={e => setNewInstrColor(e.target.value)}
+                                style={{ width: 40, height: 32, padding: 2, cursor: 'pointer' }} />
                         </label>
                         <button className="hob-btn-primary" onClick={handleAddInstrument}>Add</button>
                         <button className="hob-btn" onClick={() => setShowInstrumentForm(false)}>Cancel</button>
@@ -850,7 +991,7 @@ function MusicTab({ entries, setEntries }) {
                             <label>Date <input type="date" value={form.date} onChange={e => setF('date', e.target.value)} /></label>
                             <label>Instrument
                                 <select value={form.instrument} onChange={e => setF('instrument', e.target.value)}>
-                                    {instruments.map(i => <option key={i}>{i}</option>)}
+                                    {instruments.map(i => <option key={i.name || i} value={i.name || i}>{i.name || i}</option>)}
                                 </select>
                             </label>
                         </div>
@@ -862,7 +1003,40 @@ function MusicTab({ entries, setEntries }) {
                     </div>
                 )}
 
-                <YearCalendar entries={entries} accentColor="#f59e0b" buildPopup={buildPopup} />
+                <YearCalendar
+                    entries={entries}
+                    accentColor="#f59e0b"
+                    buildPopup={buildPopup}
+                    instruments={instruments}
+                    getEntryColor={(dayEntries) => {
+                        // Use the color of the first instrument logged that day
+                        const instr = instruments.find(i => i.name === dayEntries[0]?.instrument);
+                        return instr?.color || '#f59e0b';
+                    }}
+                    onDayClick={(ds) => setInstrPopover({ date: ds })}
+                />
+
+                {instrPopover && (
+                    <div className="form-overlay" onClick={() => setInstrPopover(null)}>
+                        <div className="hob-instr-popover" onClick={e => e.stopPropagation()}>
+                            <div className="hob-instr-popover-title">Pick instrument — {fmtDate(instrPopover.date)}</div>
+                            {instruments.map(instr => (
+                                <button key={instr.name || instr}
+                                    className="hob-instr-popover-btn"
+                                    style={{ borderLeftColor: instr.color || '#f59e0b' }}
+                                    onClick={async () => {
+                                        const instrName = instr.name || instr;
+                                        const newEntry = { date: instrPopover.date, instrument: instrName, notes: '' };
+                                        const id = await storage.addMusicEntry(newEntry);
+                                        setEntries(e => [...e, { ...newEntry, id }]);
+                                        setInstrPopover(null);
+                                    }}>
+                                    {instr.name || instr}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="hob-stats-panel">
@@ -873,7 +1047,10 @@ function MusicTab({ entries, setEntries }) {
                 <div className="hob-subsection-label" style={{ marginTop: 8 }}>By Instrument</div>
                 {instrStats.map(s => (
                     <div key={s.name} className="hob-instr-row">
-                        <span className="hob-instr-name">{s.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0, display: 'inline-block' }} />
+                            <span className="hob-instr-name">{s.name}</span>
+                        </div>
                         <div className="hob-instr-stats">
                             <span>{s.month} mo</span>
                             <span>{s.year} yr</span>
@@ -905,8 +1082,8 @@ function CodingTab({ projects, setProjects, logs, setLogs }) {
     const [showProjectForm, setShowProjectForm] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
     const [selectedProject, setSelectedProject] = useState(null);
-    const [showLogForm, setShowLogForm] = useState(false);
-    const [logForm, setLogForm] = useState({ date: getTodayStr(), notes: '' });
+    // const [showLogForm, setShowLogForm] = useState(false);
+    // const [logForm, setLogForm] = useState({ date: getTodayStr(), notes: '' });
 
     const emptyProject = { name: '', status: 'Not Started', dateStarted: '', dateEnded: '', notes: '' };
     const [projectForm, setProjectForm] = useState(emptyProject);
@@ -934,13 +1111,13 @@ function CodingTab({ projects, setProjects, logs, setLogs }) {
         if (selectedProject?.id === id) setSelectedProject(null);
     };
 
-    const handleLogSave = async () => {
-        if (!logForm.date || !selectedProject) return;
-        const log = { projectId: selectedProject.id, date: logForm.date, notes: logForm.notes };
-        const id = await storage.addCodingLog(log);
-        setLogs(l => [...l, { ...log, id }]);
-        setShowLogForm(false); setLogForm({ date: getTodayStr(), notes: '' });
-    };
+    // const handleLogSave = async () => {
+    //     if (!logForm.date || !selectedProject) return;
+    //     const log = { projectId: selectedProject.id, date: logForm.date, notes: logForm.notes };
+    //     const id = await storage.addCodingLog(log);
+    //     setLogs(l => [...l, { ...log, id }]);
+    //     setShowLogForm(false); setLogForm({ date: getTodayStr(), notes: '' });
+    // };
 
     const handleDeleteLog = async (id) => {
         if (!window.confirm('Delete this log?')) return;
@@ -956,23 +1133,23 @@ function CodingTab({ projects, setProjects, logs, setLogs }) {
         ? logs.filter(l => l.projectId === proj.id)
         : [];
 
-    const buildPopup = (dayEntries) => dayEntries.map(l => ({
-        ...l,
-        _render: () => (
-            <div>
-                <div className="hob-popup-row">
-                    <span className="hob-tag">{proj?.name}</span>
-                </div>
-                {l.notes && <div className="hob-popup-notes">{l.notes}</div>}
-            </div>
-        ),
-        _actions: [
-            { label: 'Delete', icon: <Trash2 size={11} />, danger: true, onClick: () => handleDeleteLog(l.id) },
-        ],
-    }));
+    // const buildPopup = (dayEntries) => dayEntries.map(l => ({
+    //     ...l,
+    //     _render: () => (
+    //         <div>
+    //             <div className="hob-popup-row">
+    //                 <span className="hob-tag">{proj?.name}</span>
+    //             </div>
+    //             {l.notes && <div className="hob-popup-notes">{l.notes}</div>}
+    //         </div>
+    //     ),
+    //     _actions: [
+    //         { label: 'Delete', icon: <Trash2 size={11} />, danger: true, onClick: () => handleDeleteLog(l.id) },
+    //     ],
+    // }));
 
     const allLogs = logs;
-    const allLogEntries = allLogs.map(l => ({ ...l }));
+    // const allLogEntries = allLogs.map(l => ({ ...l }));
 
     return (
         <div className="hob-coding-layout">
@@ -1046,12 +1223,9 @@ function CodingTab({ projects, setProjects, logs, setLogs }) {
                                     {proj.dateEnded   && <span className="hob-tag">Ended {fmtDate(proj.dateEnded.slice(0,10))}</span>}
                                 </div>
                             </div>
-                            <button className="hob-btn-primary" onClick={() => setShowLogForm(v => !v)}>
-                                <Plus size={13} /> Log Day
-                            </button>
                         </div>
 
-                        {showLogForm && (
+                        {/* {showLogForm && (
                             <div className="hob-form">
                                 <div className="hob-form-row">
                                     <label>Date <input type="date" value={logForm.date} onChange={e => setLogForm(f => ({ ...f, date: e.target.value }))} /></label>
@@ -1062,14 +1236,29 @@ function CodingTab({ projects, setProjects, logs, setLogs }) {
                                     <button className="hob-btn" onClick={() => setShowLogForm(false)}>Cancel</button>
                                 </div>
                             </div>
-                        )}
+                        )} */}
 
                         {proj.notes && <div className="hob-book-notes" style={{ marginBottom: 8 }}>{proj.notes}</div>}
 
                         <YearCalendar
                             entries={projLogs}
                             accentColor="#6366f1"
-                            buildPopup={buildPopup}
+                            singleEntryPerDay
+                            onDayClick={async (ds) => {
+                                const exists = projLogs.find(l => l.date === ds);
+                                if (exists) return;
+                                const log = { projectId: proj.id, date: ds, notes: '' };
+                                const id = await storage.addCodingLog(log);
+                                setLogs(l => [...l, { ...log, id }]);
+                            }}
+                            onTickDelete={async (id) => {
+                                await storage.deleteCodingLog(id);
+                                setLogs(l => l.filter(x => x.id !== id));
+                            }}
+                            onTickNotesChange={async (id, notes) => {
+                                await storage.updateCodingLog(id, { notes });
+                                setLogs(l => l.map(x => x.id === id ? { ...x, notes } : x));
+                            }}
                         />
 
                         <div className="hob-coding-log-stats">

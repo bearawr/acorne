@@ -247,8 +247,84 @@
 .hob-empty { font-size: 0.75rem; color: var(--color-text-tertiary); padding: var(--spacing-xs) 0; }
 .hob-loading { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--color-text-tertiary); }
 
+/* ─── CALENDAR ICON IN CELL ──────────────────────────── */
+.hob-cal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* ─── FUTURE DAYS ────────────────────────────────────── */
+.hob-cal-day.future-day {
+    opacity: 0.35;
+    cursor: default !important;
+}
+
+/* ─── INLINE TICK MODAL ──────────────────────────────── */
+.hob-inline-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+.hob-inline-modal-body textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--spacing-sm);
+    font-size: 0.78rem;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    outline: none;
+    resize: vertical;
+}
+.hob-inline-modal-body textarea:focus { border-color: var(--color-primary); }
+
+/* ─── INSTRUMENT POPOVER ─────────────────────────────── */
+.hob-instr-popover {
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-sm);
+    width: 220px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.hob-instr-popover-title {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-display);
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--color-bg-tertiary);
+}
+.hob-instr-popover-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    border-left: 3px solid;
+    border-radius: var(--radius-button);
+    background: var(--color-bg-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+.hob-instr-popover-btn:hover { background: var(--color-bg-tertiary); }
+
 @media (max-width: 900px) {
     .hob-tab-layout { grid-template-columns: 1fr; }
     .hob-coding-layout { grid-template-columns: 1fr; }
     .hob-stats-panel, .hob-coding-sidebar { position: static; }
 }
+
