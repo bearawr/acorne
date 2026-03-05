@@ -522,7 +522,8 @@
 
 .ellipsis-btn {
     background: none;
-    border: 1px solid var(--color-bg-tertiary);
+    /* border: 1px solid var(--color-bg-tertiary); */
+    border: none;
     border-radius: var(--radius-button);
     padding: 3px 5px;
     color: var(--color-text-tertiary);
