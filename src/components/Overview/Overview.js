@@ -80,6 +80,7 @@ function ConfettiBurst() {
     );
 }
 
+
 // ─── CELL STYLE HELPER FOR FAMILY CALENDAR ────────────────
 
 const getFamilyCellStyle = (greet, call) => {
@@ -488,10 +489,15 @@ function DailyCheckCard({ icon: Icon, label, color, bg, items, onToggle, onSkip,
 
 // ─── QUEUE ITEM ───────────────────────────────────────────
 
+
 function QueueItem({ item, index, onToggle, onDelete, isTop3,
-    onClick, isDragOver, isCompleting,
+    onClick, isDragOver, isCompleting, taskDetail,
     onDragStart, onDragOver, onDragEnd, onDrop }) {
     const mod = MODULE_META[item.module] || MODULE_META.general;
+    const effectiveDate = taskDetail?.deadline || taskDetail?.dueDate || null;
+    const cd = countdown(effectiveDate);
+
+
     return (
         <div className={`ov-queue-item ${item.done?'done':''} ${isTop3?'focus':''} ${isDragOver?'drag-over':''} ${isCompleting?'completing':''}`}
             draggable
@@ -507,7 +513,19 @@ function QueueItem({ item, index, onToggle, onDelete, isTop3,
             </div>
             <div className="ov-queue-body" onClick={onClick} title="View details">
                 <span className={`ov-queue-title ${item.done?'done':''}`}>{item.title}</span>
-                <span className="ov-queue-module-tag" style={{ color: mod.color, background: mod.bg }}>{mod.label}</span>
+                <div className="ov-queue-chips">
+                    {taskDetail?.priority && taskDetail.priority !== 'None' &&
+                        <span className="ov-priority-chip" data-priority={taskDetail.priority}>{taskDetail.priority}</span>}
+                    {taskDetail?.subject &&
+                        <span className="ov-subject-chip">{taskDetail.subject}</span>}
+                    {taskDetail?.deadline
+                        ? <span className="ov-date-chip"><FlagIcon size={9} color="#ef4444" /> {fmtS(taskDetail.deadline)}</span>
+                        : effectiveDate
+                            ? <span className="ov-date-chip"><TargetIcon size={9} color="#3b82f6" /> {fmtS(effectiveDate)}</span>
+                            : null}
+                    {cd && <span className={`ov-countdown ${cd.urgent?'urgent':''}`}>{cd.label}</span>}
+                    <span className="ov-queue-module-tag" style={{ color: mod.color, background: mod.bg }}>{mod.label}</span>
+                </div>
             </div>
             <button className="ov-delete-btn" onClick={e => { e.stopPropagation(); onDelete(); }}><X size={11} /></button>
         </div>
@@ -519,24 +537,27 @@ function QueueItem({ item, index, onToggle, onDelete, isTop3,
 // chipsRight=false → all inline wrapping         (Chores, General)
 
 function SourceTaskRow({ task, inQueue, onAddToQueue, moduleColor = '#2563EB', moduleBg = '#EFF6FF',
-    showSubject, showAddBtn = false, onDragStart, onItemClick, chipsRight = false }) {
+    showSubject, showAddBtn = false, onDragStart, onItemClick, chipsRight = false, scheduleLabel = null }) {
 
-    // FIX 1 + 2: resolve date across all possible field names
-    const effectiveDate = task.deadline || task.dueDate || task.scheduleDate || task.nextDue || null;
+    const effectiveDate = task.deadline || task.dueDate || null;
     const cd = countdown(effectiveDate);
 
     const chips = (
         <>
             {task.priority && task.priority !== 'None' && <span className="ov-priority-chip" data-priority={task.priority}>{task.priority}</span>}
             {showSubject && task.subject && <span className="ov-subject-chip">{task.subject}</span>}
+            {/* Date chip for School */}
             {task.deadline
                 ? <span className="ov-date-chip"><FlagIcon size={9} color="#ef4444" /> {fmtS(task.deadline)}</span>
                 : effectiveDate
                     ? <span className="ov-date-chip"><TargetIcon size={9} color="#3b82f6" /> {fmtS(effectiveDate)}</span>
                     : null}
             {cd && <span className={`ov-countdown ${cd.urgent?'urgent':''}`}>{cd.label}</span>}
+            {/* Schedule chip for Chores */}
+            {scheduleLabel && <span className="ov-schedule-chip">{scheduleLabel}</span>}
         </>
     );
+
 
     const addBtn = showAddBtn
         ? (
@@ -580,6 +601,7 @@ function SourceTaskRow({ task, inQueue, onAddToQueue, moduleColor = '#2563EB', m
             {addBtn}
         </div>
     );
+    
 }
 
 // ─── SOURCE GROUP HEADER ──────────────────────────────────
@@ -605,7 +627,7 @@ function GeneralTaskRow({ task, onToggle, onDelete, onEdit, openMenu, onMenuTogg
     return (
         <div className={`ov-gen-row ${task.done?'done':''}`}>
             <div className="ov-queue-check" onClick={() => onToggle(task.id)}>
-                {task.done ? <CheckCircle2 size={15} color="#22c55e" /> : <Circle size={15} color="#9ca3af" />}
+                {task.done ? <CheckCircle2 size={15} color="#22c55e" /> : <></>}
             </div>
             <span className={`ov-gen-title ${task.done?'done':''}`}>{task.title}</span>
             <div className="ov-ellipsis-wrap">
@@ -713,7 +735,9 @@ function Overview({ onNavigate }) {
                 const normalizedChores = (Array.isArray(rawChores) ? rawChores : []).map(c => ({
                     ...c,
                     title:  c.title || c.name || c.label || '(untitled)',
-                    status: DONE_STATUSES.includes(c.status) ? 'Done' : (c.status || 'Not Started'),
+                    status: (DONE_STATUSES.includes(c.status) || c.done === true || c.checked === true || c.completed === true)
+                    ? 'Done'
+                    : 'Not Started',
                     dueDate: c.dueDate || c.scheduleDate || c.nextDue || c.schedule || null,
                 }));
 
@@ -895,7 +919,8 @@ function Overview({ onNavigate }) {
     const handleQDragStart = idx => { dragSrcIndex.current = idx; dragSrcType.current = 'queue'; };
     const handleQDragOver  = idx => { if (dragOverIndexRef.current !== idx) { dragOverIndexRef.current = idx; setDragOverIndex(idx); } };
     const handleQDragEnd   = ()  => { dragSrcIndex.current = null; dragSrcType.current = null; dragOverIndexRef.current = null; setDragOverIndex(null); setIsPoolDragOver(false); dropZoneCounter.current = 0; };
-    const handleQDrop      = targetIdx => {
+    const handleQDrop = targetIdx => {
+        if (dragSrcType.current !== 'queue') return; // ← pool drags: don't interfere, let event bubble
         const src = dragSrcIndex.current;
         if (src === null || src === targetIdx) { handleQDragEnd(); return; }
         const u = [...queueItems]; const [removed] = u.splice(src, 1); u.splice(targetIdx, 0, removed);
@@ -920,6 +945,44 @@ function Overview({ onNavigate }) {
         } catch {}
     };
 
+    const handleQueueCheck = useCallback((id) => {
+        const item = queueItems.find(i => i.id === id);
+        if (!item) return;
+        if (item.done) {
+            if (completionTimers.current[id]) {
+                clearTimeout(completionTimers.current[id]);
+                delete completionTimers.current[id];
+            }
+            setCompletingItems(prev => { const n = new Set(prev); n.delete(id); return n; });
+            const u = queueItems.map(i => i.id === id ? { ...i, done: false, doneDate: null } : i);
+            setQueueItems(u); storage.saveOverviewQueue(u);
+    
+            // Also un-check the linked general task
+            if (item.generalTaskId) {
+                const u2 = generalTasks.map(t => t.id === item.generalTaskId ? { ...t, done: false, doneDate: null } : t);
+                setGeneralTasks(u2); persistGeneral(u2);
+            }
+        } else {
+            // Mark linked source task as done before triggering animation
+            if (item.generalTaskId) {
+                const u2 = generalTasks.map(t => t.id === item.generalTaskId
+                    ? { ...t, done: true, doneDate: todayStr }
+                    : t
+                );
+                setGeneralTasks(u2); persistGeneral(u2);
+            }
+            if (item.schoolTaskId) {
+                const t = schoolTasks.find(t => t.id === item.schoolTaskId);
+                if (t) handleSchoolStatus(t, 'Done');
+            }
+            if (item.choreTaskId) {
+                const t = choreTasks.find(t => t.id === item.choreTaskId);
+                if (t) handleChoreStatus(t, 'Done');
+            }
+            triggerCompletion(id);
+        }
+    }, [queueItems, generalTasks, schoolTasks, choreTasks, triggerCompletion, todayStr]);
+
     const getTaskDetail = item => {
         if (item.schoolTaskId)  return schoolTasks.find(t => t.id === item.schoolTaskId)   || null;
         if (item.choreTaskId)   return choreTasks.find(t => t.id === item.choreTaskId)     || null;
@@ -933,6 +996,11 @@ function Overview({ onNavigate }) {
     });
     const pendingChores  = choreTasks.filter(t => t.status !== 'Done');
     const pendingGeneral = generalTasks.filter(t => !t.done);
+
+    const visibleSchool  = pendingSchool.filter(t => !queueItems.some(i => i.schoolTaskId  === t.id));
+    const visibleChores  = pendingChores.filter(t => !queueItems.some(i => i.choreTaskId   === t.id));
+    const visibleGeneral = pendingGeneral.filter(t => !queueItems.some(i => i.generalTaskId === t.id));
+
     const doneTodayTasks = schoolTasks.filter(t => t.completedDate === todayStr && t.status === 'Done');
     const schoolDueToday = schoolTasks.filter(t => t.dueDate?.startsWith(todayStr) || t.deadline?.startsWith(todayStr));
     const top3  = queueItems.slice(0, 3);
@@ -1056,10 +1124,11 @@ function Overview({ onNavigate }) {
                                 )}
                                 {top3.map((item, i) => (
                                     <QueueItem key={item.id} item={item} index={i} isTop3
+                                        taskDetail={(() => { const d = getTaskDetail(item); console.log('taskDetail for', item.title, d); return d; })()}
                                         isDragOver={dragOverIndex === i}
                                         isCompleting={completingItems.has(item.id)}
                                         onClick={() => setSelectedQueueItem(item)}
-                                        onToggle={() => toggleQueue(item.id)}
+                                        onToggle={() => handleQueueCheck(item.id)}
                                         onDelete={() => deleteQueue(item.id)}
                                         onDragStart={() => handleQDragStart(i)}
                                         onDragOver={() => handleQDragOver(i)}
@@ -1077,10 +1146,11 @@ function Overview({ onNavigate }) {
                                             </div>
                                             {rest.map((item, i) => (
                                                 <QueueItem key={item.id} item={item} index={i+3} isTop3={false}
+                                                    taskDetail={getTaskDetail(item)}
                                                     isDragOver={dragOverIndex === i+3}
                                                     isCompleting={completingItems.has(item.id)}
                                                     onClick={() => setSelectedQueueItem(item)}
-                                                    onToggle={() => toggleQueue(item.id)}
+                                                    onToggle={() => handleQueueCheck(item.id)}
                                                     onDelete={() => deleteQueue(item.id)}
                                                     onDragStart={() => handleQDragStart(i+3)}
                                                     onDragOver={() => handleQDragOver(i+3)}
@@ -1099,11 +1169,11 @@ function Overview({ onNavigate }) {
 
                             {/* FIX 2: chipsRight=true for School */}
                             <div className="ov-source-group">
-                                <SourceGroupHeader icon={BookOpen} label="School" color="#2563EB" bg="#EFF6FF" count={pendingSchool.length} />
+                                <SourceGroupHeader icon={BookOpen} label="School" color="#2563EB" bg="#EFF6FF" count={visibleSchool.length} />
                                 <div className="ov-source-pool">
-                                    {pendingSchool.length === 0
+                                    {visibleSchool.length === 0
                                         ? <div className="ov-source-empty">All school tasks done!</div>
-                                        : pendingSchool.map(task => (
+                                        : visibleSchool.map(task => (
                                             <SourceTaskRow key={task.id} task={task} showSubject chipsRight showAddBtn={false}
                                                 moduleColor="#2563EB" moduleBg="#EFF6FF"
                                                 inQueue={queueItems.some(i => i.schoolTaskId === task.id)}
@@ -1119,18 +1189,25 @@ function Overview({ onNavigate }) {
 
                             {/* FIX 1: Chores now show date chip via normalized dueDate */}
                             <div className="ov-source-group">
-                                <SourceGroupHeader icon={Home} label="Chores" color="#D97706" bg="#FFFBEB" count={pendingChores.length} />
+                                <SourceGroupHeader icon={Home} label="Chores" color="#D97706" bg="#FFFBEB"
+                                    count={visibleChores.length} />
                                 <div className="ov-source-pool">
-                                    {pendingChores.length === 0
+                                    {visibleChores.length === 0
                                         ? <div className="ov-source-empty">No pending chores!</div>
-                                        : pendingChores.map(task => (
-                                            <SourceTaskRow key={task.id} task={task} showAddBtn={false}
-                                                moduleColor="#D97706" moduleBg="#FFFBEB"
-                                                inQueue={queueItems.some(i => i.choreTaskId === task.id)}
-                                                onAddToQueue={addChoreToQueue}
-                                                onItemClick={() => setSelectedSourceItem({ module: 'chores', task })}
-                                                onDragStart={e => handleSrcDragStart(e, task, 'chores')} />
-                                        ))
+                                        : visibleChores.map(task => {
+                                            const scheduleLabel = task.routine === 'Daily' && task.scheduledDays?.length > 0
+                                                ? task.scheduledDays.join(' · ')
+                                                : task.routine || null;
+                                            return (
+                                                <SourceTaskRow key={task.id} task={task} showAddBtn={false}
+                                                    scheduleLabel={scheduleLabel}
+                                                    moduleColor="#D97706" moduleBg="#FFFBEB"
+                                                    inQueue={false}
+                                                    onAddToQueue={addChoreToQueue}
+                                                    onItemClick={() => setSelectedSourceItem({ module: 'chores', task })}
+                                                    onDragStart={e => handleSrcDragStart(e, task, 'chores')} />
+                                            );
+                                        })
                                     }
                                 </div>
                             </div>
@@ -1140,12 +1217,12 @@ function Overview({ onNavigate }) {
                             {/* General Tasks */}
                             <div className="ov-source-group" ref={genMenuRef}>
                                 <SourceGroupHeader icon={Star} label="General Tasks" color="#6b7280" bg="#f9fafb"
-                                    count={pendingGeneral.length} onGroupClick={() => setShowGenCalendar(true)} />
+                                    count={visibleGeneral.length} onGroupClick={() => setShowGenCalendar(true)} />
                                 <div className="ov-source-pool">
-                                    {pendingGeneral.length === 0 && !showGenForm && (
+                                    {visibleGeneral.length === 0 && !showGenForm && (
                                         <div className="ov-source-empty">No pending general tasks</div>
                                     )}
-                                    {pendingGeneral.map(task => (
+                                    {visibleGeneral.map(task => (
                                         editingGen?.id === task.id ? (
                                             <div key={task.id} className="ov-gen-edit-row">
                                                 <input className="ov-add-input" autoFocus value={editingGen.title}
@@ -1174,7 +1251,7 @@ function Overview({ onNavigate }) {
                                                     style={{ '--hover-color': '#6b7280', '--hover-bg': '#f3f4f6' }}>
                                                     {queueItems.some(i => i.generalTaskId === task.id)
                                                         ? <CheckCircle2 size={13} color="#22c55e" />
-                                                        : <Plus size={13} />}
+                                                        : <></>}
                                                 </button>
                                             </div>
                                         )
@@ -1202,9 +1279,12 @@ function Overview({ onNavigate }) {
                 {activeSection === 'checkins' && (
                     <div className="ov-checkins-view">
                         <div className={`ov-checkin-banner ${checkinAllDone?'all-done':''}`}>
-                            {checkinAllDone
-                                ? <><CheckCircle2 size={14} color="#166534" /> All check-ins complete for today!</>
-                                : <><span className="ov-banner-count">{checkinRemaining}</span> remaining &nbsp;·&nbsp; double-click checkbox to skip</>}
+                        {checkinAllDone && (
+                            <>
+                                <CheckCircle2 size={14} color="#166534" /> 
+                                <span>All check-ins complete for today!</span>
+                            </>
+                        )}
                         </div>
                         <div className="ov-checkins-grid">
                             <DailyCheckCard icon={Moon}     label="Sleep"       color="#9A86E0" bg="#F5F3FF" items={sleepItems}   onToggle={() => toggleSimple('sleep')}  onSkip={() => skipSimple('sleep')}  onCardClick={() => onNavigate?.('sleep')}   />
