@@ -91,7 +91,7 @@
 .progress-bar-bg {
     background: var(--color-bg-secondary);
     border-radius: 99px;
-    height: 4px;
+    height: 10px;
     overflow: hidden;
     margin-bottom: var(--spacing-xs);
 }
