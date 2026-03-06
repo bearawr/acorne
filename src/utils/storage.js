@@ -794,8 +794,104 @@ export const storage = {
 
     getHobbiesData: async () => [],
 
+
     // ─── PLACEHOLDERS (ready to fill in later) ───────────────
-    getOverviewData: async() => [],
+    // ─── OVERVIEW ─────────────────────────────────────────────
+
+    getOverviewData: async () => [],
+
+    getOverviewQueue: async () => {
+        try {
+            const uid = getUserId();
+            const snap = await getDocs(collection(db, 'users', uid, 'overviewMeta'));
+            const found = snap.docs.find(d => d.id === 'queue');
+            return found ? found.data().items : [];
+        } catch (error) {
+            console.error('Error getting overview queue:', error);
+            return [];
+        }
+    },
+
+    saveOverviewQueue: async (items) => {
+        try {
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid, 'overviewMeta', 'queue'), { items });
+            return true;
+        } catch (error) {
+            console.error('Error saving overview queue:', error);
+            return false;
+        }
+    },
+
+    getOverviewCheckins: async () => {
+        try {
+            const uid = getUserId();
+            const snap = await getDocs(collection(db, 'users', uid, 'overviewMeta'));
+            const found = snap.docs.find(d => d.id === 'checkins');
+            return found ? found.data() : null;
+        } catch (error) {
+            console.error('Error getting overview checkins:', error);
+            return null;
+        }
+    },
+
+    saveOverviewCheckins: async (obj) => {
+        try {
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid, 'overviewMeta', 'checkins'), obj);
+            return true;
+        } catch (error) {
+            console.error('Error saving overview checkins:', error);
+            return false;
+        }
+    },
+
+    getOverviewGeneralTasks: async () => {
+        try {
+            const uid = getUserId();
+            const snap = await getDocs(collection(db, 'users', uid, 'overviewMeta'));
+            const found = snap.docs.find(d => d.id === 'generalTasks');
+            return found ? found.data().items : [];
+        } catch (error) {
+            console.error('Error getting overview general tasks:', error);
+            return [];
+        }
+    },
+
+    saveOverviewGeneralTasks: async (items) => {
+        try {
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid, 'overviewMeta', 'generalTasks'), { items });
+            return true;
+        } catch (error) {
+            console.error('Error saving overview general tasks:', error);
+            return false;
+        }
+    },
+
+    getFamilyHistory: async () => {
+        try {
+            const uid = getUserId();
+            const snap = await getDocs(collection(db, 'users', uid, 'overviewMeta'));
+            const found = snap.docs.find(d => d.id === 'familyHistory');
+            return found ? found.data().history : {};
+        } catch (error) {
+            console.error('Error getting family history:', error);
+            return {};
+        }
+    },
+
+    saveFamilyHistory: async (history) => {
+        try {
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid, 'overviewMeta', 'familyHistory'), { history });
+            return true;
+        } catch (error) {
+            console.error('Error saving family history:', error);
+            return false;
+        }
+    },
+
 };
 
 export default storage;
