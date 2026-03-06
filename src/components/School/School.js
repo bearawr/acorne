@@ -19,9 +19,9 @@ const STATUS_COLOR = {
 
 const emptyTask = {
     title: '', subject: '', dueDate: '', deadline: '',
-    priority: 'P2', status: 'Not Started', subtasks: [], pinned: false,
+    priority: 'P2', status: 'Not Started', subtasks: [], pinned: false, description: '',
 };
-const emptySubtask = { title: '', dueDate: '', deadline: '', priority: 'P2', status: 'Not Started' };
+const emptySubtask = { title: '', dueDate: '', deadline: '', priority: 'P2', status: 'Not Started', description: '' };
 
 // ─── HELPERS ───────────────────────────────────────────
 
@@ -31,7 +31,7 @@ const fmtS = (d) => { try { return format(parseISO(d), "MMM d"); } catch { retur
 const countdown = (dateStr) => {
     if (!dateStr) return null;
     const diff = Math.ceil((parseISO(dateStr) - new Date()) / 86400000);
-    if (diff < 0)  return { label: `${Math.abs(diff)}d ago`, urgent: true };
+    if (diff < 0)   return { label: `${Math.abs(diff)}d ago`, urgent: true };
     if (diff === 0) return { label: 'Today', urgent: true };
     if (diff <= 3)  return { label: `${diff}d`, urgent: true };
     return { label: `${diff}d`, urgent: false };
@@ -76,8 +76,8 @@ function School() {
     const [calModal, setCalModal]               = useState(null);
     const [calMenuOpen, setCalMenuOpen]         = useState(false);
     const [hideDone, setHideDone]               = useState(false);
-    const [focusSubject, setFocusSubject]       = useState(null); // for subject nav click
-    const [showSubtaskInput, setShowSubtaskInput] = useState(null); // holds task.id
+    const [focusSubject, setFocusSubject]       = useState(null);
+    const [showSubtaskInput, setShowSubtaskInput] = useState(null);
 
     useEffect(() => {
         const id = setInterval(() => {
@@ -116,21 +116,18 @@ function School() {
     const today    = new Date();
     const todayStr = format(today, 'yyyy-MM-dd');
 
-    // Global filter applied across ALL tabs
     const applyFilters = (taskList) => taskList.filter(t =>
         (filterStatus === 'All' || t.status === filterStatus) &&
         (!hideDone || t.status !== 'Done')
     );
 
-    const filteredTasks    = applyFilters(tasks);
-    const pinnedTasks      = sortTasks(tasks.filter(t => t.pinned)).slice(0, 3);
-    const unpinnedTasks    = sortTasks(applyFilters(tasks.filter(t => !t.pinned)));
-    const tasksDueToday    = tasks.filter(t => (t.dueDate?.startsWith(todayStr)) || (t.deadline?.startsWith(todayStr)));
-    const doneTodayCount   = tasksDueToday.filter(t => t.status === 'Done').length;
-    const progressPct      = tasksDueToday.length === 0 ? 0 : Math.round((doneTodayCount / tasksDueToday.length) * 100);
-    // const completedToday   = tasks.filter(t =>
-    //     t.status === 'Done' && t.completedDate?.startsWith(getTodayStr())
-    // );
+    const filteredTasks  = applyFilters(tasks);
+    const pinnedTasks    = sortTasks(tasks.filter(t => t.pinned)).slice(0, 3);
+    const unpinnedTasks  = sortTasks(applyFilters(tasks.filter(t => !t.pinned)));
+    const tasksDueToday  = tasks.filter(t => t.dueDate?.startsWith(todayStr) || t.deadline?.startsWith(todayStr));
+    const todayTasks     = tasksDueToday; // alias for Today tab
+    const doneTodayCount = tasksDueToday.filter(t => t.status === 'Done').length;
+    const progressPct    = tasksDueToday.length === 0 ? 0 : Math.round((doneTodayCount / tasksDueToday.length) * 100);
 
     const completedToday = [
         ...tasks.filter(t => t.status === 'Done' && t.completedDate?.startsWith(getTodayStr()))
@@ -150,7 +147,6 @@ function School() {
         return [...ordered, ...remaining];
     };
 
-    // Subject navigator data: undone count per subject
     const subjectNavData = getOrderedSubjects().map(subject => {
         const undone = tasks.filter(t =>
             (t.subject || 'No Subject') === subject && t.status !== 'Done'
@@ -230,12 +226,7 @@ function School() {
 
     const handleToggleSubtask = async (task, subId) => {
         const updated = task.subtasks.map(s => s.id === subId
-            ? { 
-                ...s, 
-                done: !s.done,
-                status: !s.done ? 'Done' : 'Not Started',
-                completedDate: !s.done ? getTodayStr() : null
-              }
+            ? { ...s, done: !s.done, status: !s.done ? 'Done' : 'Not Started', completedDate: !s.done ? getTodayStr() : null }
             : s
         );
         await storage.updateSchoolTask(task.id, { subtasks: updated });
@@ -261,12 +252,13 @@ function School() {
 
     const startEditSubtask = (task, sub) => {
         setEditingSubtask({ taskId: task.id, subtaskId: sub.id });
-        setSubtaskEditForm({ 
-            title: sub.title, 
-            dueDate: sub.dueDate || '', 
-            deadline: sub.deadline || '', 
+        setSubtaskEditForm({
+            title: sub.title,
+            dueDate: sub.dueDate || '',
+            deadline: sub.deadline || '',
             priority: sub.priority || 'P2',
-            status: sub.status || 'Not Started'  // ← add this
+            status: sub.status || 'Not Started',
+            description: sub.description || '',
         });
     };
 
@@ -277,7 +269,6 @@ function School() {
         setEditingSubtask(null);
     };
 
-    // Subject nav click: switch to All tab and focus that subject
     const handleSubjectNavClick = (subject) => {
         setTab('all');
         setFocusSubject(subject);
@@ -295,15 +286,14 @@ function School() {
         return <span className={`countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>;
     };
 
-    // ─── MINI CALENDAR HELPER ─────────────────────────────
+    // ─── MINI CALENDAR ────────────────────────────────────
     const SidebarCalendar = ({ tasks, onDateClick }) => {
         const today = new Date();
         const start = startOfMonth(today);
-        const end = endOfMonth(today);
-        const days = eachDayOfInterval({ start, end });
+        const end   = endOfMonth(today);
+        const days  = eachDayOfInterval({ start, end });
         const offset = getDay(start);
 
-        // Map tasks to dates for quick lookup
         const taskDates = tasks.reduce((acc, task) => {
             [task.dueDate, task.deadline].forEach(d => {
                 if (d) acc[d.split('T')[0]] = true;
@@ -313,26 +303,18 @@ function School() {
 
         return (
             <div className="mini-calendar">
-                <div className="mini-calendar-header">
-                    {format(today, 'MMMM yyyy')}
-                </div>
+                <div className="mini-calendar-header">{format(today, 'MMMM yyyy')}</div>
                 <div className="mini-calendar-grid">
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                        <div key={d} className="mini-cal-weekday">{d}</div>
+                    {['S','M','T','W','T','F','S'].map((d, i) => (
+                        <div key={i} className="mini-cal-weekday">{d}</div>
                     ))}
-                    {Array.from({ length: offset }).map((_, i) => (
-                        <div key={`empty-${i}`} />
-                    ))}
+                    {Array.from({ length: offset }).map((_, i) => <div key={`empty-${i}`} />)}
                     {days.map(day => {
                         const dateStr = format(day, 'yyyy-MM-dd');
                         const hasTask = taskDates[dateStr];
                         const isCurrent = isToday(day);
-                        
                         return (
-                            <div 
-                                key={dateStr} 
-                                className={`mini-cal-day ${isCurrent ? 'today' : ''} ${hasTask ? 'has-task' : ''}`}
-                            >
+                            <div key={dateStr} className={`mini-cal-day ${isCurrent ? 'today' : ''} ${hasTask ? 'has-task' : ''}`}>
                                 {format(day, 'd')}
                                 {hasTask && <span className="mini-cal-dot" />}
                             </div>
@@ -343,146 +325,198 @@ function School() {
         );
     };
 
-    const renderSubtasks = (task) => {
-        console.log('subtasks for', task.title, task.subtasks);
-
-        return (
-            <div className="subtasks-section">
-                {(task.subtasks || []).map(sub => (
-                    <div key={sub.id} className={`subtask-row ${editingSubtask?.subtaskId === sub.id ? 'editing' : ''}`}>
-                        {editingSubtask?.subtaskId === sub.id ? (
-                            <div className="subtask-edit-form">
-                                <input value={subtaskEditForm.title} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, title: e.target.value })} />
-                                <div className="subtask-edit-row">
-                                    <label>Do<input type="datetime-local" value={subtaskEditForm.dueDate} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, dueDate: e.target.value })} /></label>
-                                    <label>Deadline<input type="datetime-local" value={subtaskEditForm.deadline} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, deadline: e.target.value })} /></label>
-                                    <select value={subtaskEditForm.priority} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, priority: e.target.value })}>
-                                        {PRIORITIES.map(p => <option key={p}>{p}</option>)}
-                                    </select>
-                                    <select value={subtaskEditForm.status} onChange={e => setSubtaskEditForm({ ...subtaskEditForm, status: e.target.value })}>
-                                        {STATUSES.map(s => <option key={s}>{s}</option>)}
-                                    </select>
-                                </div>
-                                <div style={{ display: 'flex', gap: 6 }}>
-                                    <button onClick={() => handleSaveSubtask(task)}>Save</button>
-                                    <button onClick={() => setEditingSubtask(null)}>Cancel</button>
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                                <input type="checkbox" checked={sub.done} onChange={() => handleToggleSubtask(task, sub.id)} />
-                                <span className={`subtask-title ${sub.done ? 'done' : ''}`}>[{sub.priority}] {sub.title}</span>
-                                {sub.dueDate && <span className="subtask-meta">{fmtS(sub.dueDate)}</span>}
-                                {sub.deadline && <span className="subtask-meta deadline">⚠ {fmtS(sub.deadline)}</span>}
-                                <select
-                                    className="status-select"
-                                    value={sub.status || 'Not Started'}
-                                    style={{ background: STATUS_COLOR[sub.status || 'Not Started'].bg, color: STATUS_COLOR[sub.status || 'Not Started'].text }}
-                                    onChange={e => {
-                                        const newStatus = e.target.value;
-                                        const updated = task.subtasks.map(s => s.id === sub.id
-                                            ? { ...s, status: newStatus, done: newStatus === 'Done', completedDate: newStatus === 'Done' ? getTodayStr() : null }
-                                            : s
-                                        );
-                                        storage.updateSchoolTask(task.id, { subtasks: updated });
-                                        setTasks(tasks.map(t => t.id === task.id ? { ...t, subtasks: updated } : t));
-                                    }}
-                                >
+    // ─── SUBTASKS ─────────────────────────────────────────
+    const renderSubtasks = (task) => (
+        <div className="subtasks-section">
+            {/* Subtask column headers */}
+            {(task.subtasks || []).length > 0 && (
+                <div className="subtask-table-header">
+                    <div className="col-check" />
+                    <div className="col-title">Subtask</div>
+                    <div className="col-priority">Priority</div>
+                    <div className="col-status">Status</div>
+                    <div className="col-date">Due</div>
+                    <div className="col-actions" />
+                </div>
+            )}
+    
+            {(task.subtasks || []).map(sub => (
+                <div key={sub.id} className="subtask-row-wrap">
+                    {editingSubtask?.subtaskId === sub.id ? (
+                        <div className="subtask-edit-form">
+                            <input value={subtaskEditForm.title}
+                                onChange={e => setSubtaskEditForm({ ...subtaskEditForm, title: e.target.value })} />
+                            <div className="subtask-edit-row">
+                                <label>Do<input type="datetime-local" value={subtaskEditForm.dueDate}
+                                    onChange={e => setSubtaskEditForm({ ...subtaskEditForm, dueDate: e.target.value })} /></label>
+                                <label>Deadline<input type="datetime-local" value={subtaskEditForm.deadline}
+                                    onChange={e => setSubtaskEditForm({ ...subtaskEditForm, deadline: e.target.value })} /></label>
+                                <select value={subtaskEditForm.priority}
+                                    onChange={e => setSubtaskEditForm({ ...subtaskEditForm, priority: e.target.value })}>
+                                    {PRIORITIES.map(p => <option key={p}>{p}</option>)}
+                                </select>
+                                <select value={subtaskEditForm.status}
+                                    onChange={e => setSubtaskEditForm({ ...subtaskEditForm, status: e.target.value })}>
                                     {STATUSES.map(s => <option key={s}>{s}</option>)}
                                 </select>
-                                <div className="task-menu-container" onClick={e => e.stopPropagation()}>
-                                    <button className="ellipsis-btn" onClick={() => setActiveMenu(`sub-${sub.id}`)}>⋮</button>
-                                    {activeMenu === `sub-${sub.id}` && (
-                                        <div className="task-dropdown">
-                                            <button onClick={() => startEditSubtask(task, sub)}><Pencil size={12} /> Edit</button>
-                                            <button className="delete-opt" onClick={() => handleDeleteSubtask(task, sub.id)}><Trash2 size={12} /> Delete</button>
-                                        </div>
-                                    )}
+                            </div>
+                            <textarea placeholder="Description…" value={subtaskEditForm.description || ''}
+                                onChange={e => setSubtaskEditForm({ ...subtaskEditForm, description: e.target.value })}
+                                rows={2}
+                                style={{ resize: 'vertical', fontSize: 12, fontFamily: 'inherit', width: '100%', marginTop: 4 }} />
+                            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                                <button onClick={() => handleSaveSubtask(task)}>Save</button>
+                                <button onClick={() => setEditingSubtask(null)}>Cancel</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="subtask-row">
+                                {/* Checkbox */}
+                                <div className="col-check">
+                                    <input type="checkbox" className="task-checkbox"
+                                        checked={sub.done}
+                                        onChange={() => handleToggleSubtask(task, sub.id)} />
                                 </div>
-                            </>
-                        )}
-                    </div>
-                ))}
     
-                {/* Add subtask toggle */}
-                {showSubtaskInput === task.id ? (
-                    <div className="add-subtask-form">
-                        <input
-                            placeholder="Subtask title"
-                            value={newSubtask.title}
-                            onChange={e => setNewSubtask({ ...newSubtask, title: e.target.value })}
-                            onKeyDown={e => e.key === 'Enter' && handleAddSubtask(task)}
-                            autoFocus
-                        />
-                        <button onClick={() => handleAddSubtask(task)}>Add</button>
-                        <button onClick={() => { setShowSubtaskInput(null); setNewSubtask(emptySubtask); }}>✕</button>
-                    </div>
-                ) : null}
-            </div>
-        );
-    };
+                                {/* Title */}
+                                <div className="col-title">
+                                    <span className={`task-title ${sub.done ? 'done' : ''}`}>{sub.title}</span>
+                                </div>
+    
+                                {/* Priority */}
+                                <div className="col-priority">
+                                    {sub.priority && sub.priority !== 'None'
+                                        ? <span className="priority-tag" data-priority={sub.priority}>{sub.priority}</span>
+                                        : <span className="col-empty">—</span>}
+                                </div>
+    
+                                {/* Status */}
+                                <div className="col-status">
+                                    {(() => {
+                                        const ssc = STATUS_COLOR[sub.status || 'Not Started'];
+                                        return (
+                                            <span className="status-pill" style={{ background: ssc.bg, color: ssc.text }}>
+                                                <span className="status-pill-dot" style={{ background: ssc.dot }} />
+                                                {sub.status || 'Not Started'}
+                                            </span>
+                                        );
+                                    })()}
+                                </div>
+    
+                                {/* Due date */}
+                                <div className="col-date">
+                                    {sub.deadline
+                                        ? <span className="date-chip"><Goal size={9} color="#ef4444" /> {fmtS(sub.deadline)}</span>
+                                        : sub.dueDate
+                                            ? <span className="date-chip"><Target size={9} color="#3b82f6" /> {fmtS(sub.dueDate)}</span>
+                                            : <span className="col-empty">—</span>}
+                                </div>
+    
+                                {/* Actions */}
+                                <div className="col-actions" onClick={e => e.stopPropagation()}>
+                                    <div className="task-menu-container">
+                                        <button className="ellipsis-btn"
+                                            onClick={() => setActiveMenu(`sub-${sub.id}`)}>⋮</button>
+                                        {activeMenu === `sub-${sub.id}` && (
+                                            <div className="task-dropdown">
+                                                <button onClick={() => startEditSubtask(task, sub)}><Pencil size={12} /> Edit</button>
+                                                <button className="delete-opt" onClick={() => handleDeleteSubtask(task, sub.id)}><Trash2 size={12} /> Delete</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+    
+                            {/* Description — shown below the row if present */}
+                            {sub.description && (
+                                <div className="subtask-description">{sub.description}</div>
+                            )}
+                        </>
+                    )}
+                </div>
+            ))}
+    
+            {/* Add subtask input */}
+            {showSubtaskInput === task.id && (
+                <div className="add-subtask-form">
+                    <input placeholder="Subtask title" value={newSubtask.title}
+                        onChange={e => setNewSubtask({ ...newSubtask, title: e.target.value })}
+                        onKeyDown={e => e.key === 'Enter' && handleAddSubtask(task)}
+                        autoFocus />
+                    <button onClick={() => handleAddSubtask(task)}>Add</button>
+                    <button onClick={() => { setShowSubtaskInput(null); setNewSubtask(emptySubtask); }}>✕</button>
+                </div>
+            )}
+        </div>
+    );
 
-    // ── compact task card ──
+    // ─── TASK CARD (clean Notion/Todoist style) ───────────
     const renderTaskCard = (task) => {
         const isExpanded = expandedTask === task.id;
         const menuOpen   = activeMenu === task.id;
         const sc         = STATUS_COLOR[task.status] || STATUS_COLOR['Not Started'];
         const cd         = countdown(task.deadline || task.dueDate);
-
+    
         return (
-            <div key={task.id} className="task-card" style={{ borderLeftColor: sc.border }}
-    onDoubleClick={() => setShowSubtaskInput(task.id)}>
+            <div key={task.id} className={`task-row-wrap status-${task.status.replace(' ', '-').toLowerCase()} ${task.status === 'Done' ? 'is-done' : ''}`}>
                 <div className="task-row">
-                    {/* <span className="task-status-dot" style={{ background: sc.dot }} title={task.status} />
-                    <span className={`task-title ${task.status === 'Done' ? 'done' : ''}`}
-                        onClick={e => { if (e.detail === 1) setExpandedTask(isExpanded ? null : task.id); }}>
-                        {task.priority !== 'None' && <span className="priority-tag">{task.priority}</span>}
-                        {task.title}
-                    </span> */}
-                    <input
-                        type="checkbox"
-                        className="task-checkbox"
-                        checked={task.status === 'Done'}
-                        onChange={e => handleStatusChange(task, e.target.checked ? 'Done' : 'Not Started')}
-                        onClick={e => e.stopPropagation()}
-                        title={task.status}
-                    />
-                    <span className={`task-title ${task.status === 'Done' ? 'done' : ''}`}
-                        onClick={e => { if (e.detail === 1) setExpandedTask(isExpanded ? null : task.id); }}>
-                        {task.title}
-                        {task.priority !== 'None' && <span className="priority-tag" data-priority={task.priority}>{task.priority}</span>}
-                    </span>
-                    <span className="task-inline-meta">
-                        {task.subject && <span className="subject-chip">{task.subject}</span>}
-                        {(task.deadline || task.dueDate) && (
-                            <span className="date-chip">
-                                {task.deadline
-                                    ? <><Goal size={9} color="#ef4444" /> {fmtS(task.deadline)}</>
-                                    : <><Target size={9} color="#3b82f6" /> {fmtS(task.dueDate)}</>}
+                    {/* Checkbox */}
+                    <div className="col-check">
+                        <input type="checkbox" className="task-checkbox"
+                            checked={task.status === 'Done'}
+                            onChange={e => handleStatusChange(task, e.target.checked ? 'Done' : 'Not Started')}
+                            onClick={e => e.stopPropagation()} />
+                    </div>
+    
+                    {/* Title — clicking expands */}
+                    <div className="col-title" onClick={() => setExpandedTask(isExpanded ? null : task.id)}>
+                        <span className={`task-title ${task.status === 'Done' ? 'done' : ''}`}>{task.title}</span>
+                        {(task.subtasks || []).length > 0 && (
+                            <span className="subtask-count-chip">
+                                {task.subtasks.filter(s => s.done).length}/{task.subtasks.length}
                             </span>
                         )}
+                    </div>
+    
+                    {/* Priority */}
+                    <div className="col-priority">
+                        {task.priority !== 'None'
+                            ? <span className="priority-tag" data-priority={task.priority}>{task.priority}</span>
+                            : <span className="col-empty">—</span>}
+                    </div>
+    
+                    {/* Status */}
+                    <div className="col-status">
+                        <span className="status-pill" style={{ background: sc.bg, color: sc.text }}>
+                            <span className="status-pill-dot" style={{ background: sc.dot }} />
+                            {task.status}
+                        </span>
+                    </div>
+    
+                    {/* Due date */}
+                    <div className="col-date">
+                        {task.deadline
+                            ? <span className="date-chip"><Goal size={9} color="#ef4444" /> {fmtS(task.deadline)}</span>
+                            : task.dueDate
+                                ? <span className="date-chip"><Target size={9} color="#3b82f6" /> {fmtS(task.dueDate)}</span>
+                                : <span className="col-empty">—</span>}
                         {cd && <span className={`countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>}
-                    </span>
-                    <div className="task-actions" onClick={e => e.stopPropagation()}>
-                        <select className="status-select" value={task.status}
-                            onChange={e => handleStatusChange(task, e.target.value)}
-                            style={{ background: sc.bg, color: sc.text }}>
-                            {STATUSES.map(s => <option key={s}>{s}</option>)}
-                        </select>
+                    </div>
+    
+                    {/* Actions — visible on hover */}
+                    <div className="col-actions" onClick={e => e.stopPropagation()}>
                         <button className={`pin-btn ${task.pinned ? 'pinned' : ''}`} onClick={() => handleTogglePin(task)}>
-                            {task.pinned ? <Pin size={13} /> : <PinOff size={13} />}
+                            {task.pinned ? <Pin size={12} /> : <PinOff size={12} />}
+                        </button>
+                        <button className="add-subtask-inline-btn" title="Add subtask"
+                            onClick={() => { setShowSubtaskInput(task.id); setExpandedTask(task.id); }}>
+                            <Plus size={12} />
                         </button>
                         <div className="task-menu-container">
                             <button className="ellipsis-btn" onClick={() => setActiveMenu(menuOpen ? null : task.id)}>⋮</button>
                             {menuOpen && (
                                 <div className="task-dropdown">
-                                    <button onClick={() => { 
-                                        setShowSubtaskInput(task.id); 
-                                        setExpandedTask(task.id); // expand so dates are visible too
-                                        setActiveMenu(null); 
-                                    }}>
-                                        <Plus size={12} /> Add Subtask
-                                    </button>
                                     <button onClick={() => openEditForm(task)}><Pencil size={12} /> Edit</button>
                                     <button className="delete-opt" onClick={() => handleDeleteTask(task.id)}><Trash2 size={12} /> Delete</button>
                                 </div>
@@ -490,20 +524,26 @@ function School() {
                         </div>
                     </div>
                 </div>
+    
+                {/* Expanded detail row */}
                 {isExpanded && (
                     <div className="task-expanded">
-                        <div className="task-dates">
-                            {task.dueDate && <span className="task-date-row"><Target size={10} color="#3b82f6" /> Do: {fmt(task.dueDate)}</span>}
-                            {task.deadline && <span className="task-date-row deadline-text"><Goal size={10} color="#ef4444" /> Deadline: {fmt(task.deadline)}</span>}
-                        </div>
+                        {(task.description || task.dueDate || task.deadline) && (
+                            <div className="task-expanded-meta">
+                                {task.dueDate && <span className="task-date-row"><Target size={10} color="#3b82f6" /> {fmt(task.dueDate)}</span>}
+                                {task.deadline && <span className="task-date-row deadline-text"><Goal size={10} color="#ef4444" /> {fmt(task.deadline)}</span>}
+                            </div>
+                        )}
+                        {task.description && <div className="task-description">{task.description}</div>}
+                        {renderSubtasks(task)}
                     </div>
                 )}
-                 {renderSubtasks(task)}
+                {!isExpanded && showSubtaskInput === task.id && renderSubtasks(task)}
             </div>
         );
     };
 
-    // ── global status filter bar ──
+    // ── filter bar ──
     const renderFilterBar = () => (
         <div className="status-filters">
             {['All', ...STATUSES].map(s => (
@@ -650,6 +690,9 @@ function School() {
                             </div>
                         )}
                     </div>
+                    {task.description && (
+                        <div className="task-description" style={{ margin: '8px 0' }}>{task.description}</div>
+                    )}
                     {(task.subtasks || []).length > 0 && (
                         <div className="cal-detail-subtasks">
                             <div className="cal-detail-subtask-label">
@@ -677,19 +720,17 @@ function School() {
         );
     };
 
-    // ── subject navigator (right panel) ──
+    // ── subject navigator (now in sidebar) ──
     const renderSubjectNav = () => {
         if (subjectNavData.length === 0) return null;
         return (
-            <div className="subject-nav-panel">
-                <div className="subject-nav-title">Subjects</div>
+            <>
+                <div className="sidebar-section-label">Subjects</div>
                 <div className="subject-nav-grid">
                     {subjectNavData.map(({ subject, undone, total }) => (
-                        <button
-                            key={subject}
+                        <button key={subject}
                             className={`subject-nav-card ${focusSubject === subject ? 'active' : ''} ${undone === 0 ? 'all-done' : ''}`}
-                            onClick={() => handleSubjectNavClick(subject)}
-                        >
+                            onClick={() => handleSubjectNavClick(subject)}>
                             <span className="subject-nav-name">{subject}</span>
                             <span className="subject-nav-count">
                                 {undone > 0
@@ -697,15 +738,13 @@ function School() {
                                     : <span className="all-done-label">✓ done</span>}
                             </span>
                             <div className="subject-nav-bar">
-                                <div
-                                    className="subject-nav-bar-fill"
-                                    style={{ width: `${total > 0 ? ((total - undone) / total) * 100 : 0}%` }}
-                                />
+                                <div className="subject-nav-bar-fill"
+                                    style={{ width: `${total > 0 ? ((total - undone) / total) * 100 : 0}%` }} />
                             </div>
                         </button>
                     ))}
                 </div>
-            </div>
+            </>
         );
     };
 
@@ -719,7 +758,7 @@ function School() {
                 <div className="header-left">
                     <h1>School</h1>
                     <div className="school-tabs">
-                        {['all', 'urgent', 'calendar', 'priorities'].map(t => (
+                        {['all', 'today', 'urgent', 'calendar', 'priorities'].map(t => (
                             <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
                                 {t.charAt(0).toUpperCase() + t.slice(1)}
                             </button>
@@ -729,31 +768,28 @@ function School() {
                 <button className="new-task-btn" onClick={openNewForm}>+ New Task</button>
             </div>
 
-            {/* Global filter bar — always visible */}
+            {/* Global filter bar */}
             {renderFilterBar()}
 
             <div className="school-main">
                 {/* Sidebar */}
                 <div className="school-sidebar">
-                    
                     <div className="sidebar-card calendar-card">
                         <SidebarCalendar tasks={tasks} />
                     </div>
-                    
-            
+
                     <div className="sidebar-card">
-                    <div className = "day-stat">
-                        <div className="sidebar-date">{format(today, 'EEE, MMM d')}</div>
-                        <div className="sidebar-progress-label">
-                            <span>{doneTodayCount}/{tasksDueToday.length} today</span>
-                            <span>{progressPct}%</span>
-                        </div>
-                        <div className="sidebar-progress-bg">
-                            <div className="sidebar-progress-fill" style={{ width: `${progressPct}%` }} />
+                        <div className="day-stat">
+                            <div className="sidebar-date">{format(today, 'EEE, MMM d')}</div>
+                            <div className="sidebar-progress-label">
+                                <span>{doneTodayCount}/{tasksDueToday.length} today</span>
+                                <span>{progressPct}%</span>
+                            </div>
+                            <div className="sidebar-progress-bg">
+                                <div className="sidebar-progress-fill" style={{ width: `${progressPct}%` }} />
+                            </div>
                         </div>
                     </div>
-                    </div>
-                
 
                     <div className="sidebar-card sidebar-stats">
                         <div className="sidebar-section-label">Overview</div>
@@ -761,8 +797,7 @@ function School() {
                         {STATUSES.map(s => {
                             const c = STATUS_COLOR[s];
                             return (
-                                <div key={s} className="stat-row clickable"
-                                    onClick={() => setFilterStatus(s)}>
+                                <div key={s} className="stat-row clickable" onClick={() => setFilterStatus(s)}>
                                     <span><span className="status-dot" style={{ background: c.dot }} />{s}</span>
                                     <strong>{tasks.filter(t => t.status === s).length}</strong>
                                 </div>
@@ -785,10 +820,17 @@ function School() {
                             ))}
                         </div>
                     )}
+
+                    {/* Subjects — desktop only */}
+                    <div className="sidebar-card sidebar-subjects-wrap">
+                        {renderSubjectNav()}
+                    </div>
                 </div>
 
                 {/* Main content */}
                 <div className="school-content">
+
+                    {/* ALL TAB */}
                     {tab === 'all' && (
                         <div>
                             {getOrderedSubjects().length === 0 && <p className="empty-msg">No tasks yet.</p>}
@@ -797,27 +839,56 @@ function School() {
                                 if (subjectTasks.length === 0) return null;
                                 const ordSubs = getOrderedSubjects();
                                 return (
-                                    <div key={subject} id={`subject-${subject}`} className={`subject-group ${focusSubject === subject ? 'focused' : ''}`}>
+                                    <div key={subject} id={`subject-${subject}`}
+                                        className={`subject-group ${focusSubject === subject ? 'focused' : ''}`}>
                                         <div className="subject-group-header">
                                             {editingSubject === subject ? (
                                                 <div className="subject-rename-row">
                                                     <input value={subjectRenameInput}
                                                         onChange={e => setSubjectRenameInput(e.target.value)}
-                                                        onKeyDown={e => e.key === 'Enter' && handleRenameSubject(subject)} autoFocus />
+                                                        onKeyDown={e => e.key === 'Enter' && handleRenameSubject(subject)}
+                                                        autoFocus />
                                                     <button onClick={() => handleRenameSubject(subject)}>Save</button>
                                                     <button onClick={() => setEditingSubject(null)}>✕</button>
                                                 </div>
                                             ) : (
                                                 <h3 onClick={() => { setEditingSubject(subject); setSubjectRenameInput(subject); }}>
-                                                    {subject} <span className="rename-hint"><Pencil size={10} /></span>
+                                                    {subject}
+                                                    <span className="rename-hint"><Pencil size={10} /></span>
                                                     <span className="subject-count">{subjectTasks.length}</span>
                                                 </h3>
                                             )}
-                                            <div className="subject-move-btns">
-                                                <button onClick={() => handleMoveSubject(subject, 'up')} disabled={idx === 0}><ChevronUp size={12} /></button>
-                                                <button onClick={() => handleMoveSubject(subject, 'down')} disabled={idx === ordSubs.length - 1}><ChevronDown size={12} /></button>
+                                            <div className="subject-header-actions">
+                                                {/* Plus button to add task directly to this subject */}
+                                                <button className="subject-add-btn" title={`Add task to ${subject}`}
+                                                    onClick={e => {
+                                                        e.stopPropagation();
+                                                        setForm({ ...emptyTask, subject });
+                                                        setEditingTask(null);
+                                                        setShowForm(true);
+                                                    }}>
+                                                    <Plus size={13} />
+                                                </button>
+                                                <div className="subject-move-btns">
+                                                    <button onClick={() => handleMoveSubject(subject, 'up')} disabled={idx === 0}>
+                                                        <ChevronUp size={12} />
+                                                    </button>
+                                                    <button onClick={() => handleMoveSubject(subject, 'down')} disabled={idx === ordSubs.length - 1}>
+                                                        <ChevronDown size={12} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
+                                        {subjectTasks.length > 0 && (
+                                            <div className="task-table-header">
+                                                <div className="col-check" />
+                                                <div className="col-title">Task</div>
+                                                <div className="col-priority">Priority</div>
+                                                <div className="col-status">Status</div>
+                                                <div className="col-date">Due</div>
+                                                <div className="col-actions" />
+                                            </div>
+                                        )}
                                         {subjectTasks.map(task => renderTaskCard(task))}
                                     </div>
                                 );
@@ -825,9 +896,21 @@ function School() {
                         </div>
                     )}
 
+                    {/* TODAY TAB */}
+                    {tab === 'today' && (
+                        <div className="urgent-list">
+                            {applyFilters(todayTasks).length === 0
+                                ? <p className="empty-msg" style={{ padding: '14px 10px' }}>Nothing due today!</p>
+                                : applyFilters(todayTasks).map(task => renderTaskCard(task))
+                            }
+                        </div>
+                    )}
+
+                    {/* URGENT TAB */}
                     {tab === 'urgent' && (
                         <div className="urgent-list">
-                            {sortByUrgency(applyFilters(tasks.filter(t => t.status !== 'Done'))).length === 0 && <p className="empty-msg" style={{padding: '14px 10px'}}>No pending tasks!</p>}
+                            {sortByUrgency(applyFilters(tasks.filter(t => t.status !== 'Done'))).length === 0 &&
+                                <p className="empty-msg" style={{ padding: '14px 10px' }}>No pending tasks!</p>}
                             {sortByUrgency(applyFilters(tasks.filter(t => t.status !== 'Done'))).map(task => renderTaskCard(task))}
                             {!hideDone && applyFilters(tasks.filter(t => t.status === 'Done')).length > 0 && (
                                 <>
@@ -838,8 +921,10 @@ function School() {
                         </div>
                     )}
 
+                    {/* CALENDAR TAB */}
                     {tab === 'calendar' && renderCalendar()}
 
+                    {/* PRIORITIES TAB */}
                     {tab === 'priorities' && (
                         <div className="priorities-layout">
                             <div className="priorities-column">
@@ -855,12 +940,9 @@ function School() {
                         </div>
                     )}
                 </div>
-
-                {/* Right panel: subject navigator */}
-                {renderSubjectNav()}
             </div>
 
-            {/* Form modal */}
+            {/* New / Edit Task Form Modal */}
             {showForm && (
                 <div className="form-overlay" onClick={closeForm}>
                     <div className="task-form-modal" onClick={e => e.stopPropagation()}>
@@ -873,11 +955,28 @@ function School() {
                         <label>Subject
                             <input list="subject-options" placeholder="e.g. Math, History…"
                                 value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} />
-                            <datalist id="subject-options">{allSubjects.map(s => <option key={s} value={s} />)}</datalist>
+                            <datalist id="subject-options">
+                                {allSubjects.map(s => <option key={s} value={s} />)}
+                            </datalist>
+                        </label>
+                        <label>Description
+                            <textarea
+                                placeholder="Notes, links, bullet points…"
+                                value={form.description || ''}
+                                onChange={e => setForm({ ...form, description: e.target.value })}
+                                rows={3}
+                                style={{ resize: 'vertical', fontFamily: 'inherit', fontSize: 13 }}
+                            />
                         </label>
                         <div className="form-row">
-                            <label>Due Date & Time<input type="datetime-local" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} /></label>
-                            <label>Deadline<input type="datetime-local" value={form.deadline} onChange={e => setForm({ ...form, deadline: e.target.value })} /></label>
+                            <label>Due Date & Time
+                                <input type="datetime-local" value={form.dueDate}
+                                    onChange={e => setForm({ ...form, dueDate: e.target.value })} />
+                            </label>
+                            <label>Deadline
+                                <input type="datetime-local" value={form.deadline}
+                                    onChange={e => setForm({ ...form, deadline: e.target.value })} />
+                            </label>
                         </div>
                         <div className="form-row">
                             <label>Priority
@@ -898,6 +997,7 @@ function School() {
                     </div>
                 </div>
             )}
+
             {renderCalModal()}
         </div>
     );
