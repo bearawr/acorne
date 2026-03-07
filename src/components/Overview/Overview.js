@@ -492,42 +492,160 @@ function DailyCheckCard({ icon: Icon, label, color, bg, items, onToggle, onSkip,
 
 function QueueItem({ item, index, onToggle, onDelete, isTop3,
     onClick, isDragOver, isCompleting, taskDetail,
-    onDragStart, onDragOver, onDragEnd, onDrop }) {
+    onDragStart, onDragOver, onDragEnd, onDrop,
+    onStatusChange, onDescriptionSave }) {
+
+    const [expanded, setExpanded] = useState(false);
+    const [editingDesc, setEditingDesc] = useState(false);
+    const [descDraft, setDescDraft] = useState('');
+
     const mod = MODULE_META[item.module] || MODULE_META.general;
     const effectiveDate = taskDetail?.deadline || taskDetail?.dueDate || null;
     const cd = countdown(effectiveDate);
-
+    const sc = STATUS_COLOR[taskDetail?.status] || STATUS_COLOR['Not Started'];
 
     return (
-        <div className={`ov-queue-item ${item.done?'done':''} ${isTop3?'focus':''} ${isDragOver?'drag-over':''} ${isCompleting?'completing':''}`}
+        <div className={`ov-queue-item ${item.done ? 'done' : ''} ${isDragOver ? 'drag-over' : ''} ${isCompleting ? 'completing' : ''}`}
             draggable
             onDragStart={onDragStart}
             onDragOver={e => { e.preventDefault(); onDragOver?.(); }}
             onDragEnd={onDragEnd}
             onDrop={e => { e.preventDefault(); onDrop?.(); }}>
             {isCompleting && <ConfettiBurst />}
-            {isTop3 && <div className="ov-focus-badge">#{index + 1}</div>}
-            <span className="ov-drag-handle"><GripVertical size={12} /></span>
-            <div className="ov-queue-check" onClick={e => { e.stopPropagation(); onToggle(); }}>
-                {(item.done || isCompleting) ? <CheckCircle2 size={16} color="#22c55e" /> : <Circle size={16} color="#9ca3af" />}
-            </div>
-            <div className="ov-queue-body" onClick={onClick} title="View details">
-                <span className={`ov-queue-title ${item.done?'done':''}`}>{item.title}</span>
-                <div className="ov-queue-chips">
-                    {taskDetail?.priority && taskDetail.priority !== 'None' &&
-                        <span className="ov-priority-chip" data-priority={taskDetail.priority}>{taskDetail.priority}</span>}
-                    {taskDetail?.subject &&
-                        <span className="ov-subject-chip">{taskDetail.subject}</span>}
-                    {taskDetail?.deadline
-                        ? <span className="ov-date-chip"><FlagIcon size={9} color="#ef4444" /> {fmtS(taskDetail.deadline)}</span>
-                        : effectiveDate
-                            ? <span className="ov-date-chip"><TargetIcon size={9} color="#3b82f6" /> {fmtS(effectiveDate)}</span>
-                            : null}
-                    {cd && <span className={`ov-countdown ${cd.urgent?'urgent':''}`}>{cd.label}</span>}
+
+            {/* ── Table row ── */}
+            <div className="ov-queue-row">
+                <span className="ov-drag-handle"><GripVertical size={11} /></span>
+
+                <div className="ov-queue-check" onClick={e => { e.stopPropagation(); onToggle(); }}>
+                    {(item.done || isCompleting)
+                        ? <CheckCircle2 size={15} color="#22c55e" />
+                        : <Circle size={15} color="#9ca3af" />}
+                </div>
+
+                {/* Title */}
+                <div className="ov-queue-col-title" onClick={() => setExpanded(e => !e)}>
+                    {isTop3 && <span className="ov-focus-badge">#{index + 1}</span>}
+                    <span className={`ov-queue-title ${item.done ? 'done' : ''}`}>{item.title}</span>
+                    {taskDetail?.subtasks?.length > 0 && (
+                        <span className="ov-queue-subtask-badge">
+                            {taskDetail.subtasks.filter(s => s.done).length}/{taskDetail.subtasks.length}
+                        </span>
+                    )}
+                </div>
+
+                {/* Priority */}
+                <div className="ov-queue-col-meta">
+                    {taskDetail?.priority && taskDetail.priority !== 'None'
+                        ? <span className="ov-priority-chip" data-priority={taskDetail.priority}>{taskDetail.priority}</span>
+                        : <span className="ov-col-empty">—</span>}
+                </div>
+
+                {/* Status */}
+                <div className="ov-queue-col-meta">
+                    {taskDetail?.status
+                        ? <span className="ov-queue-status-pill" style={{ background: sc.bg, color: sc.text }}>
+                            {taskDetail.status}
+                          </span>
+                        : <span className="ov-col-empty">—</span>}
+                </div>
+
+                {/* Date */}
+                <div className="ov-queue-col-date">
+                    {effectiveDate
+                        ? <span className="ov-date-chip">
+                            {taskDetail?.deadline
+                                ? <FlagIcon size={9} color="#ef4444" />
+                                : <TargetIcon size={9} color="#3b82f6" />}
+                            {fmtS(effectiveDate)}
+                          </span>
+                        : <span className="ov-col-empty">—</span>}
+                    {cd && <span className={`ov-countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>}
+                </div>
+
+                {/* Module */}
+                <div className="ov-queue-col-module">
                     <span className="ov-queue-module-tag" style={{ color: mod.color, background: mod.bg }}>{mod.label}</span>
                 </div>
+
+                {/* Delete */}
+                <div className="ov-queue-col-actions">
+                    <button className="ov-delete-btn" style={{ opacity: 1 }}
+                        onClick={e => { e.stopPropagation(); onDelete(); }}><X size={11} /></button>
+                </div>
             </div>
-            <button className="ov-delete-btn" onClick={e => { e.stopPropagation(); onDelete(); }}><X size={11} /></button>
+
+            {/* ── Expanded section ── */}
+            {expanded && (
+                <div className="ov-queue-expanded">
+
+                    {/* Status change */}
+                    {taskDetail?.status !== undefined && onStatusChange && (
+                        <div className="ov-queue-exp-row">
+                            <span className="ov-queue-exp-label">Status</span>
+                            <select className="ov-queue-status-select"
+                                value={taskDetail.status}
+                                style={{ background: sc.bg, color: sc.text }}
+                                onChange={e => onStatusChange(taskDetail, e.target.value)}>
+                                {['Not Started', 'In Progress', 'Done'].map(s => <option key={s}>{s}</option>)}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Description */}
+                    {taskDetail && (
+                        <div className="ov-queue-exp-row">
+                            <span className="ov-queue-exp-label">Notes</span>
+                            {editingDesc ? (
+                                <div className="ov-queue-desc-edit">
+                                    <textarea rows={3} autoFocus value={descDraft}
+                                        onChange={e => setDescDraft(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Escape') setEditingDesc(false); }} />
+                                    <div className="ov-queue-desc-actions">
+                                        <button className="ov-add-confirm" onClick={() => {
+                                            onDescriptionSave?.(taskDetail, descDraft, item);
+                                            setEditingDesc(false);
+                                        }}>Save</button>
+                                        <button className="ov-add-cancel" onClick={() => setEditingDesc(false)}><X size={12} /></button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="ov-queue-desc-view"
+                                    onClick={() => { setDescDraft(taskDetail.description || ''); setEditingDesc(true); }}>
+                                    {taskDetail.description
+                                        ? <span>{taskDetail.description}</span>
+                                        : <span className="ov-queue-desc-placeholder">Add notes…</span>}
+                                    <Pencil size={10} color="#9ca3af" />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Subtasks */}
+                    {taskDetail?.subtasks?.length > 0 && (
+                        <div className="ov-queue-exp-row ov-queue-subtasks-row">
+                            <span className="ov-queue-exp-label">Subtasks</span>
+                            <div className="ov-queue-subtasks">
+                                {taskDetail.subtasks.map((s, i) => (
+                                    <div key={i} className={`ov-overlay-subtask ${s.done ? 'done' : ''}`}>
+                                        {s.done
+                                            ? <CheckCircle2 size={11} color="#22c55e" />
+                                            : <Circle size={11} color="#9ca3af" />}
+                                        <span>{s.title || s.text || s.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* View full detail */}
+                    <div className="ov-queue-exp-footer">
+                        <button className="ov-queue-detail-btn" onClick={e => { e.stopPropagation(); onClick?.(); }}>
+                            <ArrowUpRight size={11} /> Full detail
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -560,14 +678,14 @@ function SourceTaskRow({ task, inQueue, onAddToQueue, moduleColor = '#2563EB', m
 
 
     const addBtn = showAddBtn
-        ? (
-            <button className={`ov-source-add-btn ${inQueue?'added':''}`}
-                onClick={() => !inQueue && onAddToQueue(task)} disabled={inQueue}
-                style={inQueue ? {} : { '--hover-color': moduleColor, '--hover-bg': moduleBg }}>
-                {inQueue ? <CheckCircle2 size={13} color="#22c55e" /> : <Plus size={13} />}
-            </button>
-        )
-        : (!showAddBtn && inQueue ? <CheckCircle2 size={13} color="#22c55e" style={{ flexShrink: 0 }} /> : null);
+    //     ? (
+    //         <button className={`ov-source-add-btn ${inQueue?'added':''}`}
+    //             onClick={() => !inQueue && onAddToQueue(task)} disabled={inQueue}
+    //             style={inQueue ? {} : { '--hover-color': moduleColor, '--hover-bg': moduleBg }}>
+    //             {inQueue ? <CheckCircle2 size={13} color="#22c55e" /> : <Plus size={13} />}
+    //         </button>
+    //     )
+    //     : (!showAddBtn && inQueue ? <CheckCircle2 size={13} color="#22c55e" style={{ flexShrink: 0 }} /> : null);
 
     // FIX 2: chipsRight layout for School — title pinned left, chips grouped right
     if (chipsRight) {
@@ -582,7 +700,7 @@ function SourceTaskRow({ task, inQueue, onAddToQueue, moduleColor = '#2563EB', m
                     <span className="ov-source-title">{task.title}</span>
                     <div className="ov-source-chips-right">{chips}</div>
                 </div>
-                {addBtn}
+            
             </div>
         );
     }
@@ -598,7 +716,7 @@ function SourceTaskRow({ task, inQueue, onAddToQueue, moduleColor = '#2563EB', m
                 <span className="ov-source-title">{task.title}</span>
                 {chips}
             </div>
-            {addBtn}
+        
         </div>
     );
     
@@ -1243,16 +1361,7 @@ function Overview({ onNavigate }) {
                                                         onMenuToggle={setOpenGenMenu}
                                                         onEdit={t => setEditingGen({ id: t.id, title: t.title })} />
                                                 </div>
-                                                <button
-                                                    className={`ov-source-add-btn ${queueItems.some(i => i.generalTaskId === task.id) ? 'added' : ''}`}
-                                                    onClick={() => addGeneralToQueue(task)}
-                                                    disabled={queueItems.some(i => i.generalTaskId === task.id)}
-                                                    title="Add to queue"
-                                                    style={{ '--hover-color': '#6b7280', '--hover-bg': '#f3f4f6' }}>
-                                                    {queueItems.some(i => i.generalTaskId === task.id)
-                                                        ? <CheckCircle2 size={13} color="#22c55e" />
-                                                        : <></>}
-                                                </button>
+                                                
                                             </div>
                                         )
                                     ))}
@@ -1280,11 +1389,11 @@ function Overview({ onNavigate }) {
                     <div className="ov-checkins-view">
                         <div className={`ov-checkin-banner ${checkinAllDone?'all-done':''}`}>
                         {checkinAllDone && (
-                            <>
-                                <CheckCircle2 size={14} color="#166534" /> 
-                                <span>All check-ins complete for today!</span>
-                            </>
-                        )}
+                        <>
+                            <CheckCircle2 size={14} color="#166534" /> 
+                            <span>All check-ins complete for today!</span>
+                        </>
+                    )}
                         </div>
                         <div className="ov-checkins-grid">
                             <DailyCheckCard icon={Moon}     label="Sleep"       color="#9A86E0" bg="#F5F3FF" items={sleepItems}   onToggle={() => toggleSimple('sleep')}  onSkip={() => skipSimple('sleep')}  onCardClick={() => onNavigate?.('sleep')}   />
