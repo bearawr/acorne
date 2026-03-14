@@ -6,7 +6,7 @@
     gap: var(--spacing-sm);
     font-family: var(--font-body);
     font-size: 13px;
-    background: var(--color-bg);
+    background: white;
     min-height: 100vh;
     color: var(--color-text);
     width: 100%;
@@ -88,8 +88,9 @@
     display: flex;
     gap: var(--spacing-xs);
     flex-wrap: wrap;
+    padding-top: var(--spacing-xs);
     padding-bottom: var(--spacing-xs);
-    border-bottom: 1px solid var(--color-bg-tertiary);
+    /* border-bottom: 1px solid var(--color-bg-tertiary); */
 }
 
 .status-filters button {
@@ -269,7 +270,13 @@
 .mini-cal-day.today .mini-cal-dot { background: white; }
 
 /* ─── SUBJECTS IN SIDEBAR ────────────────────────────── */
-.sidebar-subjects-wrap { display: block; }
+.sidebar-subjects-wrap { 
+    display: flex;
+    flex-direction: column;
+    border: none;
+    box-shadow: none;
+    padding: 10px 0px 0px 0px;
+}
 
 .subject-nav-grid {
     display: flex;
@@ -322,11 +329,11 @@
 /* ─── SUBJECT GROUP ──────────────────────────────────── */
 .subject-group {
     margin-bottom: var(--spacing-sm);
-    background: var(--color-surface);
-    border: 1px solid var(--color-bg-tertiary);
+    background: white;
+    /* border-bottom: 1px solid var(--color-bg-tertiary); */
     border-radius: var(--radius-button);
     overflow: visible;
-    box-shadow: var(--shadow-sm);
+    /* box-shadow: var(--shadow-sm); */
 }
 .subject-group.focused { box-shadow: 0 0 0 2px var(--color-primary); }
 
@@ -334,8 +341,9 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
-    padding: 6px var(--spacing-sm);
-    background: var(--color-bg-secondary);
+    padding: 0px var(--spacing-sm);
+    margin: 50px 0px 0px 0px;
+    background: none;
     border-bottom: 1px solid var(--color-bg-tertiary);
 }
 
@@ -357,8 +365,8 @@
 .subject-group-header h3:hover .rename-hint { opacity: 1; }
 
 .subject-count {
-    background: var(--color-bg-tertiary);
-    color: var(--color-text-tertiary);
+    background: var(--color-bg-secondary);
+    color: var(--color-primary);
     font-size: 0.6rem;
     padding: 1px 5px;
     border-radius: 99px;
@@ -372,6 +380,7 @@
     width: 22px; height: 22px; border-radius: 4px;
     border: none; background: transparent; color: var(--color-text-tertiary); cursor: pointer;
     transition: background var(--transition-fast), color var(--transition-fast);
+    margin-left: 15px;
 }
 .subject-add-btn:hover { background: #eff6ff; color: #2563eb; }
 
@@ -379,7 +388,7 @@
 .subject-move-btns button {
     background: none;
     padding: 2px var(--spacing-xs);
-    border: 1px solid var(--color-bg-tertiary);
+    /* border: 1px solid var(--color-bg-tertiary); */
     border-radius: var(--radius-button);
     font-size: 0.65rem;
     color: var(--color-text-tertiary);
@@ -412,17 +421,22 @@
     font-family: var(--font-body);
 }
 
+.add-bottom-row {
+    display: flex;
+    border-top: 1px solid var(--color-bg-tertiary);
+}
+
 /* ─── TABLE COLUMN HEADERS ───────────────────────────── */
 .task-table-header {
     display: grid;
     grid-template-columns: 28px 1fr 60px 110px 110px 80px;
     align-items: center;
-    padding: 4px 10px 4px 12px;
-    border-bottom: 1px solid var(--color-bg-tertiary);
-    background: var(--color-bg-secondary);
+    padding: 2px 10px 0px 12px;
+    /* border-bottom: 1px solid var(--color-bg-tertiary); */
+    /* background: var(--color-bg-secondary); */
 }
 .task-table-header > div {
-    font-size: 10px;
+    font-size: 0.5rem;
     font-weight: 600;
     color: var(--color-text-tertiary);
     text-transform: uppercase;

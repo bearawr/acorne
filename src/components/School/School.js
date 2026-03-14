@@ -859,7 +859,7 @@ function School() {
                                                 </h3>
                                             )}
                                             <div className="subject-header-actions">
-                                                {/* Plus button to add task directly to this subject */}
+                                                {/* Plus button to add task directly to this subject
                                                 <button className="subject-add-btn" title={`Add task to ${subject}`}
                                                     onClick={e => {
                                                         e.stopPropagation();
@@ -868,7 +868,7 @@ function School() {
                                                         setShowForm(true);
                                                     }}>
                                                     <Plus size={13} />
-                                                </button>
+                                                </button> */}
                                                 <div className="subject-move-btns">
                                                     <button onClick={() => handleMoveSubject(subject, 'up')} disabled={idx === 0}>
                                                         <ChevronUp size={12} />
@@ -890,6 +890,18 @@ function School() {
                                             </div>
                                         )}
                                         {subjectTasks.map(task => renderTaskCard(task))}
+                                        {/* Plus button to add task directly to this subject */}
+                                        <div className ="add-bottom-row">
+                                                <button className="subject-add-btn" title={`Add task to ${subject}`}
+                                                    onClick={e => {
+                                                        e.stopPropagation();
+                                                        setForm({ ...emptyTask, subject });
+                                                        setEditingTask(null);
+                                                        setShowForm(true);
+                                                    }}>
+                                                    <Plus size={13} />
+                                                </button>
+                                        </div>
                                     </div>
                                 );
                             })}
