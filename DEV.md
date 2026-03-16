@@ -44,3 +44,15 @@ Track ideas and explanations to decisions.
 ## TO DO:
 - change the color for sleep so it has its own color, separate from the primary brown colors.
 - put the distributed sleep number indicator on top of the bar to the right, not within
+
+## Changes to be made
+### Mar 15, 2026
+
+- wanna change the school layout
+    - when screen width is reduced, prioritize showing the title and checkbox
+    - should be able to edit STATUS, PRIORITY, and DUE on click, not via the edit button
+    - add border color left on task row that reflects the task's STATUS
+    - change 1d to 1 day for deadline. note that includes 2d changed to 2 days
+    - change the ellipses button on task row to expand lucide react icon. this button will show the Edit Task form like text editor.
+        - Task name on top, Subject under task name. Due Date and Deadline follows. PRIORITY and STATUS are displayed under. DESCRIPTION is the largest part of the modal which accepts
+        - no more Save button needed. Automatically save whatever changes were made.
