@@ -30,12 +30,25 @@ const fmtS = (d) => { try { return format(parseISO(d), "MMM d"); } catch { retur
 
 const countdown = (dateStr) => {
     if (!dateStr) return null;
-    const diff = Math.ceil((parseISO(dateStr) - new Date()) / 86400000);
-    const label = (n) => `${n} ${n === 1 ? 'day' : 'days'}`;
-    if (diff < 0)   return { label: `${label(Math.abs(diff))} ago`, urgent: true };
+
+    const now    = new Date();
+    const target = parseISO(dateStr);
+
+    // Strip time — compare calendar days only
+    const nowDay    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+
+    const diff = Math.round((targetDay - nowDay) / 86400000);
+
+    if (diff < 0)   return { label: `${Math.abs(diff)} ${Math.abs(diff) === 1 ? 'day' : 'days'} ago`, urgent: true };
     if (diff === 0) return { label: 'Today', urgent: true };
-    if (diff <= 3)  return { label: label(diff), urgent: true };
-    return { label: label(diff), urgent: false };
+    if (diff === 1) return { label: 'Tomorrow', urgent: true };
+    if (diff <= 6)  return { label: `${diff} days`, urgent: diff <= 3 };
+    if (diff === 7) return { label: 'Next week', urgent: false };
+
+    const weeks = Math.floor(diff / 7);
+    const days  = diff % 7;
+    return { label: days > 0 ? `${weeks}w ${days}d` : `${weeks}w`, urgent: false };
 };
 
 const sortByUrgency = (t) => [...t].sort((a, b) =>
