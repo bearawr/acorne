@@ -4,6 +4,7 @@
     margin: 0 auto;
     min-height: 100vh;
     transition: var(--transition-fast);
+    background: white;
 }
 
 .view-header {
@@ -91,9 +92,9 @@
 /* CALENDAR */
 .calendar-section {
     background: var(--color-surface);
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid var(--color-bg-tertiary)
+    /* padding: 20px; */
+    /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--color-bg-tertiary) */
 }
 
 .calendar-header {
@@ -101,7 +102,7 @@
     justify-content: space-between;
     align-items: center;
     padding-bottom: 5px;
-    border-bottom: 2px solid var(--color-bg-secondary);
+    /* border-bottom: 2px solid var(--color-bg-secondary); */
 }
 
 .calendar-header h2 {
@@ -137,17 +138,19 @@
     font-weight: 700;
     font-size: 15px;
     color: var(--color-text-secondary);
-    padding-top: 10px;
+    margin-top: 5px;
+    background: var(--color-bg-secondary);
 }
 
 .calendar-day {
-    background: var(--color-bg);
+    background: white;
     border-radius: 1px;
     padding-left: 10px;
     padding-right: 5px;
     cursor: pointer;
     transition: all var(--transition-fast);
-    border: 1px solid var(--color-bg-tertiary);
+    border: 3px solid var(--color-bg-tertiary);
+    min-height: 90px; /* make it responsive */
 }
 
 .calendar-day:hover {
@@ -226,8 +229,8 @@
 .stats-card {
     background: var(--color-surface);
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid var(--color-bg-tertiary);
+    /* box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--color-bg-tertiary); */
 }
 
 .stats-card h3 {

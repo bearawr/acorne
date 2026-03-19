@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { storage } from '../../utils/storage';
 import { format, parseISO, isToday, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, getDay } from 'date-fns';
 import { 
     Target, Goal, MoreVertical, Pin, PinOff,
-    Pencil, Trash2, X, ChevronUp, ChevronDown, CheckCircle2, Plus
+    Pencil, Trash2, X, ChevronUp, ChevronDown, CheckCircle2, Plus, Maximize2
 } from 'lucide-react';
 import './School.css';
 
@@ -19,7 +19,7 @@ const STATUS_COLOR = {
 
 const emptyTask = {
     title: '', subject: '', dueDate: '', deadline: '',
-    priority: 'P2', status: 'Not Started', subtasks: [], pinned: false, description: '',
+    priority: 'None', status: 'Not Started', subtasks: [], pinned: false, description: '',
 };
 const emptySubtask = { title: '', dueDate: '', deadline: '', priority: 'P2', status: 'Not Started', description: '' };
 
@@ -31,10 +31,11 @@ const fmtS = (d) => { try { return format(parseISO(d), "MMM d"); } catch { retur
 const countdown = (dateStr) => {
     if (!dateStr) return null;
     const diff = Math.ceil((parseISO(dateStr) - new Date()) / 86400000);
-    if (diff < 0)   return { label: `${Math.abs(diff)}d ago`, urgent: true };
+    const label = (n) => `${n} ${n === 1 ? 'day' : 'days'}`;
+    if (diff < 0)   return { label: `${label(Math.abs(diff))} ago`, urgent: true };
     if (diff === 0) return { label: 'Today', urgent: true };
-    if (diff <= 3)  return { label: `${diff}d`, urgent: true };
-    return { label: `${diff}d`, urgent: false };
+    if (diff <= 3)  return { label: label(diff), urgent: true };
+    return { label: label(diff), urgent: false };
 };
 
 const sortByUrgency = (t) => [...t].sort((a, b) =>
@@ -75,9 +76,13 @@ function School() {
     const [completedResetDate, setCompletedResetDate] = useState(getTodayStr());
     const [calModal, setCalModal]               = useState(null);
     const [calMenuOpen, setCalMenuOpen]         = useState(false);
-    const [hideDone, setHideDone]               = useState(false);
+    const [hideDone, setHideDone]               = useState(true);
     const [focusSubject, setFocusSubject]       = useState(null);
     const [showSubtaskInput, setShowSubtaskInput] = useState(null);
+    const [taskModal, setTaskModal]       = useState(null);
+    const [modalForm, setModalForm]       = useState(null);
+    const [inlineEditCell, setInlineEditCell] = useState(null);
+    const modalSaveTimer = useRef(null);
 
     useEffect(() => {
         const id = setInterval(() => {
@@ -88,7 +93,7 @@ function School() {
     }, [completedResetDate]);
 
     useEffect(() => {
-        const close = () => setActiveMenu(null);
+        const close = () => { setActiveMenu(null); setInlineEditCell(null); };
         window.addEventListener('click', close);
         return () => window.removeEventListener('click', close);
     }, []);
@@ -111,6 +116,35 @@ function School() {
         };
         load();
     }, []);
+
+    // ── task modal auto-save ──
+    useEffect(() => {
+        if (!modalForm || !taskModal) return;
+        const id = taskModal.id;
+        clearTimeout(modalSaveTimer.current);
+        modalSaveTimer.current = setTimeout(async () => {
+            const updated = { ...modalForm, id };
+            await storage.updateSchoolTask(id, updated);
+            setTasks(prev => prev.map(t => t.id === id ? updated : t));
+        }, 600);
+        return () => clearTimeout(modalSaveTimer.current);
+    }, [modalForm]); // eslint-disable-line
+
+    const openTaskModal = (task) => {
+        setTaskModal(task);
+        setModalForm({ ...task });
+    };
+
+    const closeTaskModal = async () => {
+        if (modalForm && taskModal) {
+            clearTimeout(modalSaveTimer.current);
+            const updated = { ...modalForm, id: taskModal.id };
+            await storage.updateSchoolTask(taskModal.id, updated);
+            setTasks(prev => prev.map(t => t.id === taskModal.id ? updated : t));
+        }
+        setTaskModal(null);
+        setModalForm(null);
+    };
 
     // ── computed ──
     const today    = new Date();
@@ -260,6 +294,13 @@ function School() {
             status: sub.status || 'Not Started',
             description: sub.description || '',
         });
+    };
+
+    const handleInlineFieldSave = async (task, field, value) => {
+        const updated = { ...task, [field]: value };
+        await storage.updateSchoolTask(task.id, updated);
+        setTasks(prev => prev.map(t => t.id === task.id ? updated : t));
+        setInlineEditCell(null);
     };
 
     const handleSaveSubtask = async (task) => {
@@ -454,13 +495,20 @@ function School() {
     // ─── TASK CARD (clean Notion/Todoist style) ───────────
     const renderTaskCard = (task) => {
         const isExpanded = expandedTask === task.id;
-        const menuOpen   = activeMenu === task.id;
-        const sc         = STATUS_COLOR[task.status] || STATUS_COLOR['Not Started'];
-        const cd         = countdown(task.deadline || task.dueDate);
+        const sc  = STATUS_COLOR[task.status] || STATUS_COLOR['Not Started'];
+        const cd  = countdown(task.deadline || task.dueDate);
+        const iec = inlineEditCell;
+        const editingStatus   = iec?.taskId === task.id && iec?.field === 'status';
+        const editingPriority = iec?.taskId === task.id && iec?.field === 'priority';
+        const editingDeadline = iec?.taskId === task.id && iec?.field === 'deadline';
+        const editingDueDate  = iec?.taskId === task.id && iec?.field === 'dueDate';
     
         return (
-            <div key={task.id} className={`task-row-wrap status-${task.status.replace(' ', '-').toLowerCase()} ${task.status === 'Done' ? 'is-done' : ''}`}>
+            <div key={task.id}
+                className={`task-row-wrap status-${task.status.replace(/ /g, '-').toLowerCase()} ${task.status === 'Done' ? 'is-done' : ''}`}
+                style={{ borderLeft: `3px solid ${sc.border}` }}>
                 <div className="task-row">
+    
                     {/* Checkbox */}
                     <div className="col-check">
                         <input type="checkbox" className="task-checkbox"
@@ -469,7 +517,7 @@ function School() {
                             onClick={e => e.stopPropagation()} />
                     </div>
     
-                    {/* Title — clicking expands */}
+                    {/* Title */}
                     <div className="col-title" onClick={() => setExpandedTask(isExpanded ? null : task.id)}>
                         <span className={`task-title ${task.status === 'Done' ? 'done' : ''}`}>{task.title}</span>
                         {(task.subtasks || []).length > 0 && (
@@ -479,32 +527,77 @@ function School() {
                         )}
                     </div>
     
-                    {/* Priority */}
-                    <div className="col-priority">
-                        {task.priority !== 'None'
-                            ? <span className="priority-tag" data-priority={task.priority}>{task.priority}</span>
-                            : <span className="col-empty">—</span>}
+                    {/* Priority — click to edit */}
+                    <div className="col-priority"
+                        onClick={e => { e.stopPropagation(); if (!editingPriority) setInlineEditCell({ taskId: task.id, field: 'priority' }); }}>
+                        {editingPriority ? (
+                            <select autoFocus className="inline-select"
+                                value={task.priority}
+                                onChange={e => handleInlineFieldSave(task, 'priority', e.target.value)}
+                                onBlur={() => setInlineEditCell(null)}>
+                                {PRIORITIES.map(p => <option key={p}>{p}</option>)}
+                            </select>
+                        ) : task.priority !== 'None'
+                            ? <span className="priority-tag" data-priority={task.priority} style={{ cursor: 'pointer' }}>{task.priority}</span>
+                            : <span className="col-empty col-clickable">—</span>}
                     </div>
     
-                    {/* Status */}
-                    <div className="col-status">
-                        <span className="status-pill" style={{ background: sc.bg, color: sc.text }}>
-                            <span className="status-pill-dot" style={{ background: sc.dot }} />
-                            {task.status}
-                        </span>
+                    {/* Status — click to edit */}
+                    <div className="col-status"
+                        onClick={e => { e.stopPropagation(); if (!editingStatus) setInlineEditCell({ taskId: task.id, field: 'status' }); }}>
+                        {editingStatus ? (
+                            <select autoFocus className="inline-select"
+                                value={task.status}
+                                onChange={e => { handleStatusChange(task, e.target.value); setInlineEditCell(null); }}
+                                onBlur={() => setInlineEditCell(null)}>
+                                {STATUSES.map(s => <option key={s}>{s}</option>)}
+                            </select>
+                        ) : (
+                            <span className="status-pill" style={{ background: sc.bg, color: sc.text, cursor: 'pointer' }}>
+                                <span className="status-pill-dot" style={{ background: sc.dot }} />
+                                {task.status}
+                            </span>
+                        )}
                     </div>
     
-                    {/* Due date */}
+                    {/* Due date — click chip to edit that specific field */}
                     <div className="col-date">
-                        {task.deadline
-                            ? <span className="date-chip"><Goal size={9} color="#ef4444" /> {fmtS(task.deadline)}</span>
-                            : task.dueDate
-                                ? <span className="date-chip"><Target size={9} color="#3b82f6" /> {fmtS(task.dueDate)}</span>
-                                : <span className="col-empty">—</span>}
-                        {cd && <span className={`countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>}
+                        {editingDeadline ? (
+                            <input autoFocus type="datetime-local" className="inline-date-input"
+                                defaultValue={task.deadline || ''}
+                                onBlur={e => handleInlineFieldSave(task, 'deadline', e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') handleInlineFieldSave(task, 'deadline', e.target.value);
+                                    if (e.key === 'Escape') setInlineEditCell(null);
+                                }} />
+                        ) : editingDueDate ? (
+                            <input autoFocus type="datetime-local" className="inline-date-input"
+                                defaultValue={task.dueDate || ''}
+                                onBlur={e => handleInlineFieldSave(task, 'dueDate', e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') handleInlineFieldSave(task, 'dueDate', e.target.value);
+                                    if (e.key === 'Escape') setInlineEditCell(null);
+                                }} />
+                        ) : (
+                            <>
+                                {task.deadline
+                                    ? <span className="date-chip" style={{ cursor: 'pointer' }}
+                                        onClick={e => { e.stopPropagation(); setInlineEditCell({ taskId: task.id, field: 'deadline' }); }}>
+                                        <Goal size={9} color="#ef4444" /> {fmtS(task.deadline)}
+                                      </span>
+                                    : task.dueDate
+                                        ? <span className="date-chip" style={{ cursor: 'pointer' }}
+                                            onClick={e => { e.stopPropagation(); setInlineEditCell({ taskId: task.id, field: 'dueDate' }); }}>
+                                            <Target size={9} color="#3b82f6" /> {fmtS(task.dueDate)}
+                                          </span>
+                                        : <span className="col-empty col-clickable"
+                                            onClick={e => { e.stopPropagation(); setInlineEditCell({ taskId: task.id, field: 'dueDate' }); }}>—</span>}
+                                {cd && <span className={`countdown ${cd.urgent ? 'urgent' : ''}`}>{cd.label}</span>}
+                            </>
+                        )}
                     </div>
     
-                    {/* Actions — visible on hover */}
+                    {/* Actions */}
                     <div className="col-actions" onClick={e => e.stopPropagation()}>
                         <button className={`pin-btn ${task.pinned ? 'pinned' : ''}`} onClick={() => handleTogglePin(task)}>
                             {task.pinned ? <Pin size={12} /> : <PinOff size={12} />}
@@ -513,19 +606,13 @@ function School() {
                             onClick={() => { setShowSubtaskInput(task.id); setExpandedTask(task.id); }}>
                             <Plus size={12} />
                         </button>
-                        <div className="task-menu-container">
-                            <button className="ellipsis-btn" onClick={() => setActiveMenu(menuOpen ? null : task.id)}>⋮</button>
-                            {menuOpen && (
-                                <div className="task-dropdown">
-                                    <button onClick={() => openEditForm(task)}><Pencil size={12} /> Edit</button>
-                                    <button className="delete-opt" onClick={() => handleDeleteTask(task.id)}><Trash2 size={12} /> Delete</button>
-                                </div>
-                            )}
-                        </div>
+                        <button className="expand-btn" title="Open task" onClick={() => openTaskModal(task)}>
+                            <Maximize2 size={12} />
+                        </button>
                     </div>
                 </div>
     
-                {/* Expanded detail row */}
+                {/* Expanded subtask/description row */}
                 {isExpanded && (
                     <div className="task-expanded">
                         {(task.description || task.dueDate || task.deadline) && (
@@ -745,6 +832,91 @@ function School() {
                     ))}
                 </div>
             </>
+        );
+    };
+
+    // ─── TASK MODAL ───────────────────────────────────────
+    const renderTaskModal = () => {
+        if (!taskModal || !modalForm) return null;
+        const sc = STATUS_COLOR[modalForm.status] || STATUS_COLOR['Not Started'];
+
+        return (
+            <div className="form-overlay" onClick={closeTaskModal}>
+                <div className="task-modal-panel" onClick={e => e.stopPropagation()}>
+
+                    {/* Header */}
+                    <div className="task-modal-header">
+                        <span className="task-modal-hint">Auto-saving</span>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                            <button className="form-close-btn task-modal-delete-btn"
+                                title="Delete task"
+                                onClick={() => { closeTaskModal(); handleDeleteTask(taskModal.id); }}>
+                                <Trash2 size={14} />
+                            </button>
+                            <button className="form-close-btn" onClick={closeTaskModal}>
+                                <X size={15} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Title */}
+                    <input className="task-modal-title"
+                        value={modalForm.title}
+                        onChange={e => setModalForm({ ...modalForm, title: e.target.value })}
+                        placeholder="Task title…" />
+
+                    {/* Subject */}
+                    <input className="task-modal-subject"
+                        list="subject-options-modal"
+                        value={modalForm.subject || ''}
+                        onChange={e => setModalForm({ ...modalForm, subject: e.target.value })}
+                        placeholder="Subject…" />
+                    <datalist id="subject-options-modal">
+                        {allSubjects.map(s => <option key={s} value={s} />)}
+                    </datalist>
+
+                    {/* Properties */}
+                    <div className="task-modal-props">
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label"><Target size={11} color="#3b82f6" /> Due</span>
+                            <input type="datetime-local" className="task-modal-prop-input"
+                                value={modalForm.dueDate || ''}
+                                onChange={e => setModalForm({ ...modalForm, dueDate: e.target.value })} />
+                        </div>
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label"><Goal size={11} color="#ef4444" /> Deadline</span>
+                            <input type="datetime-local" className="task-modal-prop-input"
+                                value={modalForm.deadline || ''}
+                                onChange={e => setModalForm({ ...modalForm, deadline: e.target.value })} />
+                        </div>
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label">Priority</span>
+                            <select className="task-modal-prop-select"
+                                value={modalForm.priority}
+                                onChange={e => setModalForm({ ...modalForm, priority: e.target.value })}>
+                                {PRIORITIES.map(p => <option key={p}>{p}</option>)}
+                            </select>
+                        </div>
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label">Status</span>
+                            <select className="task-modal-prop-select"
+                                value={modalForm.status}
+                                style={{ background: sc.bg, color: sc.text }}
+                                onChange={e => setModalForm({ ...modalForm, status: e.target.value })}>
+                                {STATUSES.map(s => <option key={s}>{s}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="task-modal-desc-label">Description</div>
+                    <textarea className="task-modal-desc"
+                        value={modalForm.description || ''}
+                        onChange={e => setModalForm({ ...modalForm, description: e.target.value })}
+                        placeholder="Notes, links, bullet points…" />
+
+                </div>
+            </div>
         );
     };
 
@@ -1009,7 +1181,7 @@ function School() {
                     </div>
                 </div>
             )}
-
+            {renderTaskModal()}
             {renderCalModal()}
         </div>
     );

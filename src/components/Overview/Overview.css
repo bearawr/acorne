@@ -5,7 +5,9 @@
     margin: 0 auto;
     padding: 0 24px;
     width: 100%;
+    height: 100%;
     box-sizing: border-box;
+    background: white;
 }
 
 /* ─── HEADER ─────────────────────────────────────────── */
@@ -15,7 +17,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 20px 10px;
-    border-bottom: 1px solid var(--color-bg-tertiary);
+    /* border-bottom: 1px solid var(--color-bg-tertiary); */
     flex-shrink: 0;
     gap: var(--spacing-md);
 }
@@ -76,8 +78,8 @@
 .ov-stat-bar {
     display: flex;
     gap: var(--spacing-sm);
-    padding: 10px 20px;
-    border-bottom: 1px solid var(--color-bg-tertiary);
+    padding: 5px 20px;
+    /* border-bottom: 1px solid var(--color-bg-tertiary); */
     overflow-x: auto;
     flex-shrink: 0;
     -webkit-overflow-scrolling: touch;
@@ -694,9 +696,9 @@
 
 .ov-check-card {
     background: var(--color-surface);
-    border: 1px solid var(--color-bg-tertiary);
-    border-top: 2.5px solid var(--card-color, #6b7280);
-    border-radius: 8px;
+    /* border: 1px solid var(--color-bg-tertiary); */
+    border: 1px solid var(--card-color, #6b7280);
+    border-radius: 4px;
     overflow: hidden;
 }
 
@@ -721,6 +723,8 @@
 .ov-check-item.done    { opacity: 0.5; }
 .ov-check-item.skipped { opacity: 0.4; }
 .ov-check-item:hover   { background: var(--color-bg-secondary); }
+
+.ov-check-chard.done { background: black;} /* Make entire card its primary color when done*/
 
 .ov-check-box { width: 15px; height: 15px; border: 1.5px solid var(--color-bg-tertiary); border-radius: var(--radius-button); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color var(--transition-fast); }
 .ov-check-box.is-skip { background: var(--color-bg); }
