@@ -11,7 +11,6 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    padding: var(--spacing-lg);
     animation: fadeIn var(--transition-fast);
 }
 
@@ -19,15 +18,15 @@
     background: var(--color-surface);
     border-radius: 0px;
     box-shadow: var(--shadow-lg);
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
+    max-width: 300px;
+    width: 70%;
+    max-height: 60vh;
     animation: slideInRight var(--transition-base);
+    overflow-y: auto;
 }
 
 .modal-header {
-    padding: 20px 20px 10px 25px;
+    padding: 0px 20px 10px 25px;
     border-bottom: 1px solid var(--color-bg-tertiary);
     display: flex;
     justify-content: space-between;
@@ -47,8 +46,8 @@
 
 /* --- BUTTONS AND INPUTS --- */
 .btn-icon {
-    width: 40px;
-    height: 40px;
+    width: 20px;
+    height: 20px;
     border-radius: 4px;
     border: 2px solid var(--color-bg-tertiary);
     display: flex;
@@ -64,10 +63,10 @@
 }
 
 .sleep-form {
-    padding: 25px;
+    padding: 5px;
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Increased gap for better vertical spacing */
+    gap: 5px; /* Increased gap for better vertical spacing */
 }
 
 /* --- THE NEW HORIZONTAL LAYOUT --- */
@@ -162,7 +161,6 @@
 /* --- MODAL ACTIONS --- */
 .modal-actions {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding-top: 10px;
     height: 12px;
@@ -171,7 +169,6 @@
 
 .action-group {
     display: flex;
-    gap: var(--spacing-md);
 }
 
 .btn-secondary {
@@ -192,13 +189,13 @@
     background: var(--color-bg-secondary);
     display: flex;
     align-items: center;
-    gap: 8px;
     color: var(--color-text);
     border-radius: 4px;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 10px;
     transition: all var(--transition-fast);
     border: 2px solid var(--color-bg-tertiary);
+    margin: 0;
 }
 
 .btn-primary:hover{
@@ -251,11 +248,11 @@
     }
 
     .btn-primary, .btn-danger {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 300;
         text-align: center;
         padding: 10px 14px;
-        margin: 10px;
+        margin: 0px;
         height: 30px;
         gap: 3px;
     }
@@ -265,22 +262,24 @@
         padding: 0px 1px 0px 1px;
         font-weight: 300;
         height: 30px;
-        margin: 10px;
+        margin: 0px;
         display: flex;
         justify-content: center;
     }
 
     .modal-actions {
         height: 10px;
+        gap: 2px;
     }
 
     .action-group {
         width: 100%;
+        gap: 2px;
     }
 
     .action-group button,
     .btn-danger {
-        flex: 1;
+        /* flex: 1; */
     }
 
 }

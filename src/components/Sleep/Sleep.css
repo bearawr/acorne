@@ -4,6 +4,7 @@
     margin: 0 auto;
     min-height: 100vh;
     transition: var(--transition-fast);
+    background: white;
 }
 
 .view-header {
@@ -91,9 +92,9 @@
 /* CALENDAR */
 .calendar-section {
     background: var(--color-surface);
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid var(--color-bg-tertiary)
+    /* padding: 20px; */
+    /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--color-bg-tertiary) */
 }
 
 .calendar-header {
@@ -101,7 +102,7 @@
     justify-content: space-between;
     align-items: center;
     padding-bottom: 5px;
-    border-bottom: 2px solid var(--color-bg-secondary);
+    /* border-bottom: 2px solid var(--color-bg-secondary); */
 }
 
 .calendar-header h2 {
@@ -137,17 +138,19 @@
     font-weight: 700;
     font-size: 15px;
     color: var(--color-text-secondary);
-    padding-top: 10px;
+    margin-top: 5px;
+    background: var(--color-bg-secondary);
 }
 
 .calendar-day {
-    background: var(--color-bg);
+    background: white;
     border-radius: 1px;
     padding-left: 10px;
     padding-right: 5px;
     cursor: pointer;
     transition: all var(--transition-fast);
-    border: 1px solid var(--color-bg-tertiary);
+    border: 3px solid var(--color-bg-tertiary);
+    min-height: 90px; /* make it responsive */
 }
 
 .calendar-day:hover {
@@ -157,7 +160,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.calendar-day.today { border: 2px solid orange; }
+.calendar-day.today { border: 2px solid var(--color-primary-light); }
 .calendar-day.today .day-number { font-weight: 700; }
 /* .calendar-day.has-data { background: #f5f3f0} */
 
@@ -226,8 +229,8 @@
 .stats-card {
     background: var(--color-surface);
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid var(--color-bg-tertiary);
+    /* box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--color-bg-tertiary); */
 }
 
 .stats-card h3 {
@@ -243,13 +246,14 @@
 .sleep-distribution {
     display: flex;
     flex-direction: column;
-    margin-top: 10px;
+    margin-top: 0px;
 }
 
 .distribution-bar {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    padding-bottom: -5px;
+    border-bottom:1px solid var(--color-bg-secondary);
 }
 
 .distribution-label {
@@ -257,13 +261,14 @@
     font-size: 13px;
     font-weight: 700;
     color: var(--color-text);
+    margin-left: 10px;
 }
 
 .distribution-visual {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
 }
 
 .distribution-fill {
@@ -354,7 +359,7 @@
 }
 
 /* Mobile - SUltra23 */
-@media (max-width: 1440px) {
+@media (max-width: 768px) {
     .sleep-view { padding: 15px; }
     .view-header h1 { font-size: 22px; width: 100%; }
     .view-header { align-items: flex-start; }

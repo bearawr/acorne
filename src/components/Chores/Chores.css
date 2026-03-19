@@ -1,0 +1,833 @@
+/* ─── BASE ───────────────────────────────────────────── */
+.chores-view {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    background: #FFFBEB; /* Background covers everything */
+    padding: var(--spacing-md) 0; /* Padding on top/bottom only */
+}
+
+.module-chores {
+    width: 100%;
+    max-width: 600px; /* Notion's standard width is around 900px-1000px */
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg); /* Keeps content from touching edges on mobile */
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--color-text);
+}
+
+/* ─── HEADER ─────────────────────────────────────────── */
+.chores-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.chores-header h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+    letter-spacing: -0.3px;
+    font-family: var(--font-display);
+}
+
+.chores-header-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-left: auto;
+}
+
+.chores-header-actions button,
+.view-toggle {
+    padding: 5px var(--spacing-sm);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    background: var(--color-surface);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    transition: background var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap;
+}
+.chores-header-actions button:hover,
+.view-toggle:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+}
+
+/* ─── PROGRESS BAR ───────────────────────────────────── */
+.clean-house-bar {
+    background: var(--color-surface);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.clean-house-progress {
+    flex: 1;
+    min-width: 0;
+}
+
+.clean-house-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+}
+
+.progress-bar-bg {
+    background: var(--color-bg-secondary);
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-xs);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--color-success);
+    border-radius: 99px;
+    transition: width var(--transition-base);
+}
+
+.reset-btn {
+    background: none;
+    border: 1px solid var(--color-bg-tertiary);
+    color: var(--color-text-tertiary);
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px var(--spacing-sm);
+    border-radius: var(--radius-button);
+    font-family: var(--font-body);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+.reset-btn:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+}
+
+/* ─── STOPWATCH ──────────────────────────────────────── */
+.stopwatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-primary);
+    border-radius: var(--radius-button);
+    min-width: 90px;
+    flex-shrink: 0;
+}
+
+.stopwatch-time {
+    font-size: 1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-inverse);
+    letter-spacing: 1px;
+    line-height: 1;
+    font-family: var(--font-display);
+}
+
+.stopwatch-controls {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.stopwatch-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-button);
+    border: 1px solid var(--color-bg-tertiary);
+    background: var(--color-surface);
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-fast);
+    padding: 0;
+}
+.stopwatch-btn.play  { border-color: var(--color-info);    color: var(--color-info); }
+.stopwatch-btn.pause { border-color: var(--color-warning);  color: var(--color-warning); }
+.stopwatch-btn.reset { color: var(--color-text-tertiary); }
+.stopwatch-btn:hover { background: var(--color-bg-secondary); }
+
+/* ─── DASH TABS ──────────────────────────────────────── */
+.dash-tabs {
+    display: flex;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-button);
+    padding: 3px;
+    gap: 2px;
+}
+
+.dash-tab {
+    flex: 1;
+    padding: 4px 6px;
+    border: none;
+    border-radius: var(--radius-button);
+    background: transparent;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: background var(--transition-fast), color var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.dash-tab:hover:not(.active) { color: var(--color-text-secondary); }
+.dash-tab.active {
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+}
+
+.tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 99px;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-tertiary);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.dash-tab.active .tab-badge {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+/* ─── TYPE GROUP (All view) ──────────────────────────── */
+.type-group {
+    margin-bottom: var(--spacing-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    overflow: visible;
+    box-shadow: var(--shadow-sm);
+}
+
+.type-group-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 6px var(--spacing-sm);
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button) var(--radius-button) 0 0;
+}
+
+.type-group-header h3 {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--color-text-tertiary);
+    margin: 0;
+    font-family: var(--font-display);
+}
+
+.type-group-count {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-tertiary);
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    border-radius: 99px;
+    font-weight: 700;
+}
+
+/* ─── TYPE LABEL CHIP (non-All views) ────────────────── */
+.chore-type-label {
+    background: var(--color-accent);
+    color: var(--color-primary);
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 99px;
+}
+
+
+.routine-group {
+    margin-bottom: var(--spacing-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    overflow: visible;
+    box-shadow: var(--shadow-sm);
+}
+
+.routine-header {
+    padding: 6px var(--spacing-sm);
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button) var(--radius-button) 0 0;
+}
+
+.routine-header h3 {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--color-text-tertiary);
+    margin: 0;
+    font-family: var(--font-display);
+}
+
+/* ─── CHORE CARD ─────────────────────────────────────── */
+.chore-card {
+    display: grid;
+    grid-template-columns: 18px 1fr auto auto;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-bg-secondary);
+    border-left: 3px solid transparent;
+    padding: var(--spacing-sm);
+    min-height: 36px;
+    transition: background var(--transition-fast);
+}
+.chore-card:last-child { border-bottom: none; border-radius: 0 0 var(--radius-button) var(--radius-button); }
+.chore-card:hover { background: var(--color-bg); }
+.chore-card.done { opacity: 0.55; }
+.chore-card.done .chore-name { text-decoration: line-through; color: var(--color-text-tertiary); }
+
+.chore-card input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-success);
+    flex-shrink: 0;
+    cursor: pointer;
+    margin: 0;
+}
+
+.chore-left {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.chore-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chore-meta {
+    font-size: 0.65rem;
+    color: var(--color-text-tertiary);
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-top: 1px;
+}
+
+.chore-days {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* ─── ORDER BUTTONS (right side) ────────────────────── */
+.order-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.order-btn {
+    width: 20px;
+    height: 18px;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-tertiary);
+    font-size: 0.55rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+.order-btn:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-primary);
+}
+.order-btn:disabled { opacity: 0.2; cursor: default; }
+
+/* ─── ELLIPSIS / DROPDOWN ────────────────────────────── */
+.chore-menu-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.chores-view .ellipsis-btn {
+    background: none;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    padding: 3px 5px;
+    color: var(--color-text-tertiary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+.chores-view .ellipsis-btn:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    box-shadow: var(--shadow-md);
+    z-index: 200;
+    overflow: hidden;
+    min-width: 100px;
+}
+.dropdown-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--spacing-sm);
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 0.75rem;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+.dropdown-menu button:hover { background: var(--color-bg-secondary); }
+.dropdown-menu button.delete-opt { color: var(--color-error); }
+
+/* ─── FORM OVERLAY (centered, matches School) ────────── */
+.chores-view .form-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(45, 42, 38, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 400;
+    padding: var(--spacing-md);
+}
+
+.chore-form {
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-md);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.chore-form h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+    font-family: var(--font-display);
+}
+
+.chore-form input,
+.chore-form select {
+    padding: var(--spacing-sm);
+    font-size: 0.82rem;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    outline: none;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    transition: border-color var(--transition-fast);
+}
+.chore-form input:focus,
+.chore-form select:focus {
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+}
+
+/* ─── REPEAT TOGGLE ──────────────────────────────────── */
+.repeat-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+.toggle-btn {
+    padding: 4px var(--spacing-sm);
+    border-radius: var(--radius-button);
+    border: 1px solid var(--color-bg-tertiary);
+    background: var(--color-bg-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+}
+.toggle-btn.on {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+/* ─── DAYS PICKER ────────────────────────────────────── */
+.days-picker {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.days-picker button {
+    padding: 3px 8px;
+    border-radius: var(--radius-button);
+    border: 1px solid var(--color-bg-tertiary);
+    background: var(--color-surface);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    transition: all var(--transition-fast);
+    min-width: 34px;
+    text-align: center;
+}
+.days-picker button.selected {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+/* ─── FORM ACTIONS ───────────────────────────────────── */
+.chore-form-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+}
+.chore-form-actions button {
+    flex: 1;
+    padding: 9px;
+    border-radius: var(--radius-button);
+    border: 1px solid var(--color-bg-tertiary);
+    background: var(--color-bg-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    transition: background var(--transition-fast);
+}
+.chore-form-actions button.save-btn {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+.chore-form-actions button.save-btn:hover { opacity: 0.85; }
+.chore-form-actions button:hover:not(.save-btn) { background: var(--color-bg-tertiary); }
+
+/* ─── TYPE MANAGER ───────────────────────────────────── */
+.type-manager {
+    background: var(--color-surface);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-sm) var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.type-manager h3 {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin: 0 0 var(--spacing-sm);
+    font-family: var(--font-display);
+}
+
+.type-add-row {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+}
+.type-add-row input {
+    flex: 1;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    font-size: 0.78rem;
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    outline: none;
+}
+.type-add-row input:focus { border-color: var(--color-primary); }
+.type-add-row button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-radius: var(--radius-button);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.type-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) 0;
+    border-top: 1px solid var(--color-bg-secondary);
+    font-size: 0.78rem;
+}
+.type-row span { flex: 1; color: var(--color-text-secondary); }
+.type-row button {
+    padding: 2px var(--spacing-sm);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    background: var(--color-bg-secondary);
+    font-size: 0.7rem;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    transition: background var(--transition-fast);
+}
+.type-row button:hover { background: var(--color-bg-tertiary); }
+.type-row button.delete-opt { color: var(--color-error); border-color: var(--color-error); }
+.type-row input {
+    flex: 1;
+    padding: 2px var(--spacing-sm);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    font-size: 0.78rem;
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    outline: none;
+}
+
+/* ─── FAB ────────────────────────────────────────────── */
+.fab-add {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.fab-add:hover { transform: scale(1.08); }
+.fab-add:active { transform: scale(0.96); }
+
+/* ─── EMPTY / LOADING ────────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-lg) var(--spacing-md);
+    color: var(--color-text-tertiary);
+    font-size: 0.78rem;
+}
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--color-text-tertiary);
+}
+
+/* ─── CALENDAR / YEAR VIEW ───────────────────────────── */
+.eagle-eye-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.months-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.month-block {
+    background: var(--color-surface);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+.month-label {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: var(--spacing-xs);
+    font-family: var(--font-display);
+}
+
+.month-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.heat-square {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--color-bg-secondary);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: transform var(--transition-fast);
+}
+.heat-square:hover,
+.heat-square.selected { transform: scale(1.4); outline: 1.5px solid var(--color-primary); }
+.heat-square[data-level="1"] { background: #dff8c7; }
+.heat-square[data-level="2"] { background: #bde84f; }
+.heat-square[data-level="3"] { background: #9dd627; }
+.heat-square[data-level="4"] { background: var(--color-success); }
+
+.day-detail-panel-compact {
+    background: var(--color-surface);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.detail-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--color-text);
+}
+
+.pill-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+.task-pill {
+    background: var(--color-accent);
+    color: var(--color-primary);
+    border-radius: var(--radius-button);
+    padding: 2px var(--spacing-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.empty-text      { color: var(--color-text-tertiary); font-size: 0.75rem; }
+.empty-text-hint { color: var(--color-text-tertiary); font-size: 0.75rem; margin: 0; }
+
+.stats-section {
+    background: var(--color-surface);
+    border: 1px solid var(--color-bg-tertiary);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-sm) var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.stats-section h4 {
+    font-size: 0.62rem;
+    color: var(--color-text-tertiary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 0 0 var(--spacing-sm);
+    font-family: var(--font-display);
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+}
+.stats-table th {
+    text-align: left;
+    padding: 4px 8px 8px 0;
+    color: var(--color-text-tertiary);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-bg-tertiary);
+    font-family: var(--font-display);
+}
+.stats-table td {
+    padding: 6px 8px 6px 0;
+    border-bottom: 1px solid var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+}
+.stats-table td strong { color: var(--color-primary); font-weight: 700; }
+
+/* ─── MOBILE ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .chores-view { padding: 20px 0px; }
+    .dash-tabs { flex-wrap: wrap; }
+    .months-dashboard { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+}
