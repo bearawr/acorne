@@ -46,16 +46,15 @@ Track ideas and explanations to decisions.
 - put the distributed sleep number indicator on top of the bar to the right, not within
 
 ## Changes to be made
-### Mar 15, 2026
 
 - wanna change the school layout
-    [] when screen width is reduced, prioritize showing the title and checkbox
-    [] should be able to edit STATUS, PRIORITY, and DUE on click, not via the edit button
-    [] add border color left on task row that reflects the task's STATUS
-    [] change 1d to 1 day for deadline. note that includes 2d changed to 2 days
-    [] change the ellipses button on task row to expand lucide react icon. this button will show the Edit Task form like text editor.
-        * [] Task name on top, Subject under task name. Due Date and Deadline follows. PRIORITY and STATUS are displayed under. DESCRIPTION is the largest part of the modal which accepts
-        * [] no more Save button needed. Automatically save whatever changes were made.
+    [x] when screen width is reduced, prioritize showing the title and checkbox
+    [x] should be able to edit STATUS, PRIORITY, and DUE on click, not via the edit button
+    [x] add border color left on task row that reflects the task's STATUS
+    [x] change 1d to 1 day for deadline. note that includes 2d changed to 2 days
+    [x] change the ellipses button on task row to expand lucide react icon. this button will show the Edit Task form like text editor.
+        * [x] Task name on top, Subject under task name. Due Date and Deadline follows. PRIORITY and STATUS are displayed under. DESCRIPTION is the largest part of the modal which accepts
+        * [x] no more Save button needed. Automatically save whatever changes were made.
     [x] default All view is Hide Done (default to hiding all dones on first open) (check)
 
 - overview Top 3 Focus or Queue needs to include the Hobbies and Fitness modules!!!
