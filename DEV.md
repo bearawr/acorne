@@ -58,9 +58,9 @@ Track ideas and explanations to decisions.
     [x] default All view is Hide Done (default to hiding all dones on first open) (check)
 
     part 2 changes of school layout:
-    [] make subtask onclick editable functions like the parent task (able to edit STATUS, PRIORITY, and DUE on click)
-    [] at any point when the screen is being squeezed on desktop, the title of the task is always shown.
-       so maybe that means when the screen is so small, the view is horizontally scrollable?
-       so that everything can still be displayed. 
+    [x] make subtask onclick editable functions like the parent task (able to edit STATUS, PRIORITY, and DUE on click.)
+    [x] at any point when the screen is being squeezed on desktop, the title of the task is always shown.
+       so maybe that means when the screen is so small, the view is horizontally scrollable.
+       so that everything can still be displayed.
 
 - overview Top 3 Focus or Queue needs to include the Hobbies and Fitness modules!!!

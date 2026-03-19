@@ -83,6 +83,9 @@ function School() {
     const [modalForm, setModalForm]       = useState(null);
     const [inlineEditCell, setInlineEditCell] = useState(null);
     const modalSaveTimer = useRef(null);
+    const [subtaskModal, setSubtaskModal]       = useState(null); // { task, sub }
+    const [subtaskModalForm, setSubtaskModalForm] = useState(null);
+    const subtaskModalSaveTimer = useRef(null);
 
     useEffect(() => {
         const id = setInterval(() => {
@@ -144,6 +147,41 @@ function School() {
         }
         setTaskModal(null);
         setModalForm(null);
+    };
+
+    useEffect(() => {
+        if (!subtaskModalForm || !subtaskModal) return;
+        clearTimeout(subtaskModalSaveTimer.current);
+        subtaskModalSaveTimer.current = setTimeout(async () => {
+            const updated = subtaskModal.task.subtasks.map(s =>
+                s.id === subtaskModal.sub.id ? { ...subtaskModalForm, id: s.id } : s
+            );
+            await storage.updateSchoolTask(subtaskModal.task.id, { subtasks: updated });
+            setTasks(prev => prev.map(t =>
+                t.id === subtaskModal.task.id ? { ...t, subtasks: updated } : t
+            ));
+        }, 600);
+        return () => clearTimeout(subtaskModalSaveTimer.current);
+    }, [subtaskModalForm]); // eslint-disable-line
+    
+    const openSubtaskModal = (task, sub) => {
+        setSubtaskModal({ task, sub });
+        setSubtaskModalForm({ ...sub });
+    };
+    
+    const closeSubtaskModal = async () => {
+        if (subtaskModalForm && subtaskModal) {
+            clearTimeout(subtaskModalSaveTimer.current);
+            const updated = subtaskModal.task.subtasks.map(s =>
+                s.id === subtaskModal.sub.id ? { ...subtaskModalForm, id: s.id } : s
+            );
+            await storage.updateSchoolTask(subtaskModal.task.id, { subtasks: updated });
+            setTasks(prev => prev.map(t =>
+                t.id === subtaskModal.task.id ? { ...t, subtasks: updated } : t
+            ));
+        }
+        setSubtaskModal(null);
+        setSubtaskModalForm(null);
     };
 
     // ── computed ──
@@ -303,6 +341,15 @@ function School() {
         setInlineEditCell(null);
     };
 
+    const handleSubtaskInlineFieldSave = async (task, subtaskId, field, value) => {
+        const updated = task.subtasks.map(s =>
+            s.id === subtaskId ? { ...s, [field]: value } : s
+        );
+        await storage.updateSchoolTask(task.id, { subtasks: updated });
+        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, subtasks: updated } : t));
+        setInlineEditCell(null);
+    };
+
     const handleSaveSubtask = async (task) => {
         const updated = task.subtasks.map(s => s.id === editingSubtask.subtaskId ? { ...s, ...subtaskEditForm } : s);
         await storage.updateSchoolTask(task.id, { subtasks: updated });
@@ -419,53 +466,104 @@ function School() {
                                         checked={sub.done}
                                         onChange={() => handleToggleSubtask(task, sub.id)} />
                                 </div>
-    
+
                                 {/* Title */}
                                 <div className="col-title">
                                     <span className={`task-title ${sub.done ? 'done' : ''}`}>{sub.title}</span>
                                 </div>
-    
-                                {/* Priority */}
-                                <div className="col-priority">
-                                    {sub.priority && sub.priority !== 'None'
-                                        ? <span className="priority-tag" data-priority={sub.priority}>{sub.priority}</span>
-                                        : <span className="col-empty">—</span>}
-                                </div>
-    
-                                {/* Status */}
-                                <div className="col-status">
-                                    {(() => {
-                                        const ssc = STATUS_COLOR[sub.status || 'Not Started'];
-                                        return (
-                                            <span className="status-pill" style={{ background: ssc.bg, color: ssc.text }}>
-                                                <span className="status-pill-dot" style={{ background: ssc.dot }} />
-                                                {sub.status || 'Not Started'}
-                                            </span>
-                                        );
-                                    })()}
-                                </div>
-    
-                                {/* Due date */}
-                                <div className="col-date">
-                                    {sub.deadline
-                                        ? <span className="date-chip"><Goal size={9} color="#ef4444" /> {fmtS(sub.deadline)}</span>
-                                        : sub.dueDate
-                                            ? <span className="date-chip"><Target size={9} color="#3b82f6" /> {fmtS(sub.dueDate)}</span>
-                                            : <span className="col-empty">—</span>}
-                                </div>
-    
+
+                                {/* Priority — click to edit */}
+                                {(() => {
+                                    const editing = inlineEditCell?.taskId === task.id && inlineEditCell?.subtaskId === sub.id && inlineEditCell?.field === 'priority';
+                                    return (
+                                        <div className="col-priority"
+                                            onClick={e => { e.stopPropagation(); if (!editing) setInlineEditCell({ taskId: task.id, subtaskId: sub.id, field: 'priority' }); }}>
+                                            {editing ? (
+                                                <select autoFocus className="inline-select"
+                                                    value={sub.priority || 'P2'}
+                                                    onChange={e => handleSubtaskInlineFieldSave(task, sub.id, 'priority', e.target.value)}
+                                                    onBlur={() => setInlineEditCell(null)}>
+                                                    {PRIORITIES.map(p => <option key={p}>{p}</option>)}
+                                                </select>
+                                            ) : sub.priority && sub.priority !== 'None'
+                                                ? <span className="priority-tag col-clickable" data-priority={sub.priority}>{sub.priority}</span>
+                                                : <span className="col-empty col-clickable">—</span>}
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Status — click to edit */}
+                                {(() => {
+                                    const editing = inlineEditCell?.taskId === task.id && inlineEditCell?.subtaskId === sub.id && inlineEditCell?.field === 'status';
+                                    const ssc = STATUS_COLOR[sub.status || 'Not Started'];
+                                    return (
+                                        <div className="col-status"
+                                            onClick={e => { e.stopPropagation(); if (!editing) setInlineEditCell({ taskId: task.id, subtaskId: sub.id, field: 'status' }); }}>
+                                            {editing ? (
+                                                <select autoFocus className="inline-select"
+                                                    value={sub.status || 'Not Started'}
+                                                    onChange={e => handleSubtaskInlineFieldSave(task, sub.id, 'status', e.target.value)}
+                                                    onBlur={() => setInlineEditCell(null)}>
+                                                    {STATUSES.map(s => <option key={s}>{s}</option>)}
+                                                </select>
+                                            ) : (
+                                                <span className="status-pill col-clickable" style={{ background: ssc.bg, color: ssc.text }}>
+                                                    <span className="status-pill-dot" style={{ background: ssc.dot }} />
+                                                    {sub.status || 'Not Started'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Due date — click to edit */}
+                                {(() => {
+                                    const editingDL  = inlineEditCell?.taskId === task.id && inlineEditCell?.subtaskId === sub.id && inlineEditCell?.field === 'deadline';
+                                    const editingDue = inlineEditCell?.taskId === task.id && inlineEditCell?.subtaskId === sub.id && inlineEditCell?.field === 'dueDate';
+                                    return (
+                                        <div className="col-date">
+                                            {editingDL ? (
+                                                <input autoFocus type="datetime-local" className="inline-date-input"
+                                                    defaultValue={sub.deadline || ''}
+                                                    onBlur={e => handleSubtaskInlineFieldSave(task, sub.id, 'deadline', e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') handleSubtaskInlineFieldSave(task, sub.id, 'deadline', e.target.value);
+                                                        if (e.key === 'Escape') setInlineEditCell(null);
+                                                    }} />
+                                            ) : editingDue ? (
+                                                <input autoFocus type="datetime-local" className="inline-date-input"
+                                                    defaultValue={sub.dueDate || ''}
+                                                    onBlur={e => handleSubtaskInlineFieldSave(task, sub.id, 'dueDate', e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') handleSubtaskInlineFieldSave(task, sub.id, 'dueDate', e.target.value);
+                                                        if (e.key === 'Escape') setInlineEditCell(null);
+                                                    }} />
+                                            ) : (
+                                                <>
+                                                    {sub.deadline
+                                                        ? <span className="date-chip col-clickable"
+                                                            onClick={e => { e.stopPropagation(); setInlineEditCell({ taskId: task.id, subtaskId: sub.id, field: 'deadline' }); }}>
+                                                            <Goal size={9} color="#ef4444" /> {fmtS(sub.deadline)}
+                                                        </span>
+                                                        : sub.dueDate
+                                                            ? <span className="date-chip col-clickable"
+                                                                onClick={e => { e.stopPropagation(); setInlineEditCell({ taskId: task.id, subtaskId: sub.id, field: 'dueDate' }); }}>
+                                                                <Target size={9} color="#3b82f6" /> {fmtS(sub.dueDate)}
+                                                            </span>
+                                                            : <span className="col-empty col-clickable"
+                                                                onClick={e => { e.stopPropagation(); setInlineEditCell({ taskId: task.id, subtaskId: sub.id, field: 'dueDate' }); }}>—</span>}
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
                                 {/* Actions */}
                                 <div className="col-actions" onClick={e => e.stopPropagation()}>
-                                    <div className="task-menu-container">
-                                        <button className="ellipsis-btn"
-                                            onClick={() => setActiveMenu(`sub-${sub.id}`)}>⋮</button>
-                                        {activeMenu === `sub-${sub.id}` && (
-                                            <div className="task-dropdown">
-                                                <button onClick={() => startEditSubtask(task, sub)}><Pencil size={12} /> Edit</button>
-                                                <button className="delete-opt" onClick={() => handleDeleteSubtask(task, sub.id)}><Trash2 size={12} /> Delete</button>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <button className="expand-btn" title="Open subtask"
+                                        onClick={() => openSubtaskModal(task, sub)}>
+                                        <Maximize2 size={12} />
+                                    </button>
                                 </div>
                             </div>
     
@@ -835,6 +933,95 @@ function School() {
         );
     };
 
+    // ─── SUBTASK MODAL ────────────────────────────────────
+    const renderSubtaskModal = () => {
+        if (!subtaskModal || !subtaskModalForm) return null;
+        const { task } = subtaskModal;
+        const sc  = STATUS_COLOR[subtaskModalForm.status || 'Not Started'];
+        const ptc = STATUS_COLOR[task.status] || STATUS_COLOR['Not Started'];
+
+        return (
+            <div className="form-overlay" onClick={closeSubtaskModal}>
+                <div className="task-modal-panel" onClick={e => e.stopPropagation()}>
+
+                    {/* Header */}
+                    <div className="task-modal-header">
+                        <span className="task-modal-hint">Auto-saving</span>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                            <button className="form-close-btn task-modal-delete-btn"
+                                title="Delete subtask"
+                                onClick={() => { closeSubtaskModal(); handleDeleteSubtask(task, subtaskModal.sub.id); }}>
+                                <Trash2 size={14} />
+                            </button>
+                            <button className="form-close-btn" onClick={closeSubtaskModal}>
+                                <X size={15} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Parent task breadcrumb */}
+                    <div className="subtask-modal-parent">
+                        <span className="subtask-modal-parent-label">Parent task</span>
+                        <span className="subtask-modal-parent-title">
+                            <span className="status-pill" style={{ background: ptc.bg, color: ptc.text, fontSize: '0.62rem' }}>
+                                <span className="status-pill-dot" style={{ background: ptc.dot }} />
+                                {task.status}
+                            </span>
+                            {task.subject && <span className="subject-chip-visible">{task.subject}</span>}
+                            <span>{task.title}</span>
+                        </span>
+                    </div>
+
+                    {/* Subtask title */}
+                    <input className="task-modal-title"
+                        value={subtaskModalForm.title || ''}
+                        onChange={e => setSubtaskModalForm({ ...subtaskModalForm, title: e.target.value })}
+                        placeholder="Subtask title…" />
+
+                    {/* Properties */}
+                    <div className="task-modal-props">
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label"><Target size={11} color="#3b82f6" /> Due</span>
+                            <input type="datetime-local" className="task-modal-prop-input"
+                                value={subtaskModalForm.dueDate || ''}
+                                onChange={e => setSubtaskModalForm({ ...subtaskModalForm, dueDate: e.target.value })} />
+                        </div>
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label"><Goal size={11} color="#ef4444" /> Deadline</span>
+                            <input type="datetime-local" className="task-modal-prop-input"
+                                value={subtaskModalForm.deadline || ''}
+                                onChange={e => setSubtaskModalForm({ ...subtaskModalForm, deadline: e.target.value })} />
+                        </div>
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label">Priority</span>
+                            <select className="task-modal-prop-select"
+                                value={subtaskModalForm.priority || 'P2'}
+                                onChange={e => setSubtaskModalForm({ ...subtaskModalForm, priority: e.target.value })}>
+                                {PRIORITIES.map(p => <option key={p}>{p}</option>)}
+                            </select>
+                        </div>
+                        <div className="task-modal-prop-row">
+                            <span className="task-modal-prop-label">Status</span>
+                            <select className="task-modal-prop-select"
+                                value={subtaskModalForm.status || 'Not Started'}
+                                style={{ background: sc.bg, color: sc.text }}
+                                onChange={e => setSubtaskModalForm({ ...subtaskModalForm, status: e.target.value })}>
+                                {STATUSES.map(s => <option key={s}>{s}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="task-modal-desc-label">Description</div>
+                    <textarea className="task-modal-desc"
+                        value={subtaskModalForm.description || ''}
+                        onChange={e => setSubtaskModalForm({ ...subtaskModalForm, description: e.target.value })}
+                        placeholder="Notes…" />
+                </div>
+            </div>
+        );
+    };
+
     // ─── TASK MODAL ───────────────────────────────────────
     const renderTaskModal = () => {
         if (!taskModal || !modalForm) return null;
@@ -1181,6 +1368,7 @@ function School() {
                     </div>
                 </div>
             )}
+            {renderSubtaskModal()}
             {renderTaskModal()}
             {renderCalModal()}
         </div>

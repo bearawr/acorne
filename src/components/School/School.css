@@ -1294,6 +1294,34 @@
     .task-modal-panel { max-height: 95vh; }
 }
 
+.subtask-modal-parent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--spacing-xs) var(--spacing-md) var(--spacing-sm);
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-bg-tertiary);
+}
+
+.subtask-modal-parent-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-display);
+}
+
+.subtask-modal-parent-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
 /* ─── MISC ───────────────────────────────────────────── */
 .empty-msg { font-size: 0.75rem; color: var(--color-text-tertiary); padding: var(--spacing-md); }
 .loading { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--color-text-tertiary); }
@@ -1398,17 +1426,59 @@
     .school-header { gap: var(--spacing-xs); }
 }
 
-/* Tablet-small — hide priority and date cols, keep title visible */
-@media (max-width: 768px) {
-    .task-row,
-    .task-table-header {
-        grid-template-columns: 28px 1fr 110px 80px;
-    }
-    .col-priority,
-    .task-table-header .col-priority { display: none; }
-    .col-date,
-    .task-table-header .col-date { display: none; }
+/* ─── HORIZONTAL SCROLL CONTAINER ───────────────────── */
+.school-content {
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.task-table-header,
+.task-row,
+.subtask-table-header,
+.subtask-row {
+    min-width: 560px;
+}
+
+.task-table-header,
+.task-row {
+    min-width: 560px;
+}
+
+.subtask-table-header,
+.subtask-row {
+    min-width: 560px;
 }
 
 @media (max-width: 640px) {
+    /* 3-column mobile: check | title | deadline */
+    .task-row,
+    .task-table-header {
+        grid-template-columns: 28px 1fr 90px;
+        min-width: unset;   /* let it collapse naturally on mobile */
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    .col-priority,
+    .col-status,
+    .task-table-header .col-priority,
+    .task-table-header .col-status { display: none; }
+
+    .subtask-row,
+    .subtask-table-header {
+        grid-template-columns: 28px 1fr 90px;
+        min-width: unset;
+        padding-left: 24px;
+        padding-right: 8px;
+    }
+    .subtask-row .col-priority,
+    .subtask-row .col-status,
+    .subtask-table-header .col-priority,
+    .subtask-table-header .col-status { display: none; }
+
+    /* Always show actions on mobile */
+    .col-actions,
+    .subtask-row .col-actions { opacity: 1; }
+
+    /* Disable horizontal scroll on mobile — columns collapse instead */
+    .school-content { overflow-x: visible; }
 }
